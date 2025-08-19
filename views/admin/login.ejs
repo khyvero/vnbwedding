@@ -1,0 +1,21 @@
+<% layout('layout') -%>
+
+<div class="max-w-sm mx-auto mt-16">
+  <h1 class="serif text-3xl mb-4">Admin Login</h1>
+
+  <% if (error) { %>
+    <p class="bg-red-100 text-red-700 p-3 rounded-lg mb-4"><%= error %></p>
+  <% } %>
+
+  <form method="POST" action="/admin/login" class="space-y-4">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div>
+      <label for="password" class="block font-medium">Password</label>
+      <input type="password" name="password" id="password" required
+             class="w-full rounded-lg border px-3 py-2 mt-1">
+    </div>
+    <button type="submit" class="w-full px-4 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-800">
+      Login
+    </button>
+  </form>
+</div>

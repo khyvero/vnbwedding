@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    environment:
+      - PORT=3000
+    env_file:
+      - .env
+    volumes:
+      - ./prisma:/app/prisma
+    ports:
+      - "3000:3000"
+    depends_on:
+      - caddy
+
+  caddy:
+    image: caddy:2-alpine
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app

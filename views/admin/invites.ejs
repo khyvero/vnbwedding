@@ -1,0 +1,225 @@
+<% layout('layout') -%>
+
+<div class="flex items-center justify-between mb-4">
+  <h2 class="serif text-3xl">Invited List</h2>
+
+  <div class="flex items-center gap-2">
+    <!-- Columns menu -->
+    <div class="relative">
+      <button id="colBtn" type="button"
+              class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
+        Columns
+      </button>
+      <div id="colMenu"
+           class="hidden absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-lg p-3 space-y-2 z-10">
+        <p class="text-xs text-stone-500">Show/Hide columns</p>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" data-colchk="created" checked> Created
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" data-colchk="updated" checked> Updated
+        </label>
+      </div>
+    </div>
+
+    <a href="/admin" class="text-sm underline text-stone-600 hover:no-underline">Back to Dashboard</a>
+  </div>
+</div>
+
+<!-- Create new invite (primary) -->
+<div class="mb-6 bg-white rounded-xl shadow-sm p-4">
+  <form id="createPrimary" method="post" action="/admin/invites/create-primary" class="grid gap-3 md:grid-cols-5 items-end">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div>
+      <p class="text-sm font-medium mb-1">Access Name</p>
+      <input name="guestName" required placeholder="e.g., Alice Smith"
+             class="w-full rounded-lg border px-3 py-2">
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">Access Code</p>
+      <input name="accessCode" required placeholder="e.g., ALICE-2025"
+             class="w-full rounded-lg border px-3 py-2">
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">Group</p>
+      <select name="inviteGroup" class="w-full rounded-lg border px-3 py-2">
+        <option value="guest" selected>Guest</option>
+        <option value="family">Family</option>
+        <option value="bridesmaids">Bridesmaids</option>
+        <option value="groomsmen">Groomsmen</option>
+      </select>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">Max Guests</p>
+      <input name="maxGuests" type="number" min="0" placeholder="e.g., 1"
+             class="w-full rounded-lg border px-3 py-2">
+    </div>
+
+    <!-- Inline error (spans the last column on desktop) -->
+    <p id="createPrimaryErr" class="text-sm text-red-600 md:col-span-4 hidden"></p>
+
+    <div class="md:text-right">
+      <button class="rounded-lg px-4 py-2 bg-stone-900 text-white hover:bg-stone-800">
+        Add Guest
+      </button>
+    </div>
+  </form>
+</div>
+
+<p class="text-sm text-stone-600 mb-2">Edit access name, set a new access code, or change the group.</p>
+
+<div class="overflow-x-auto">
+  <table class="w-full text-sm bg-white rounded-xl shadow-sm overflow-hidden">
+    <thead class="bg-stone-100">
+      <tr>
+        <th class="text-left p-3">Access Name</th>
+        <th class="text-left p-3">New Access Code</th>
+        <th class="text-left p-3">Group</th>
+        <th class="text-left p-3">Max Guests</th>
+        <th class="text-left p-3" data-col="created">Created</th>
+        <th class="text-left p-3" data-col="updated">Updated</th>
+        <th class="text-left p-3">Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% invites.forEach(inv => { const grp = inv.group || 'guest'; %>
+        <tr class="border-t">
+          <!-- Per-row form -->
+          <form id="f-<%= inv.id %>" method="post" action="/admin/invites/<%= inv.id %>/update">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          </form>
+
+          <!-- Access Name -->
+          <td class="p-3">
+            <input name="accessName"
+                   form="f-<%= inv.id %>"
+                   value="<%= inv.accessName || '' %>"
+                   class="rounded-lg border px-2 py-1 w-56"
+                   placeholder="e.g., Alice Smith">
+          </td>
+
+          <!-- New Access Code -->
+          <td class="p-3">
+            <input type="password"
+                   name="accessCode"
+                   form="f-<%= inv.id %>"
+                   class="rounded-lg border px-2 py-1 w-56"
+                   placeholder="set new code (optional)">
+          </td>
+
+          <!-- Group -->
+          <td class="p-3">
+            <select name="inviteGroup" form="f-<%= inv.id %>" class="rounded-lg border px-2 py-1 w-40">
+              <option value="guest"       <%= grp === 'guest' ? 'selected' : '' %>>Guest</option>
+              <option value="family"      <%= grp === 'family' ? 'selected' : '' %>>Family</option>
+              <option value="bridesmaids" <%= grp === 'bridesmaids' ? 'selected' : '' %>>Bridesmaids</option>
+              <option value="groomsmen"   <%= grp === 'groomsmen' ? 'selected' : '' %>>Groomsmen</option>
+            </select>
+          </td>
+
+          <!-- Max Guests -->
+          <td class="p-3">
+            <input name="maxGuests"
+                   type="number" min="0"
+                   form="f-<%= inv.id %>"
+                   value="<%= inv.maxGuests || '' %>"
+                   class="rounded-lg border px-2 py-1 w-24"
+                   placeholder="e.g., 1">
+          </td>
+
+          <!-- Timestamps (togglable) -->
+          <td class="p-3 whitespace-nowrap" data-col="created"><%= new Date(inv.createdAt).toLocaleString() %></td>
+          <td class="p-3 whitespace-nowrap" data-col="updated"><%= new Date(inv.updatedAt).toLocaleString() %></td>
+
+          <!-- Save -->
+          <td class="p-3">
+            <button form="f-<%= inv.id %>"
+                    class="px-3 py-1 rounded-md bg-stone-900 text-white text-xs hover:bg-stone-800">
+              Save
+            </button>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // Intercept the "Create primary" form to show inline error (no popups), URL-encoded + CSRF
+  (function(){
+    const form  = document.getElementById('createPrimary');
+    const errEl = document.getElementById('createPrimaryErr');
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl?.classList.add('hidden'); errEl.textContent = '';
+
+      const fd   = new FormData(form);
+      const body = new URLSearchParams(fd);
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body,
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'X-CSRF-Token': fd.get('_csrf') || ''
+          }
+        });
+
+        if (!res.ok) {
+          const text = (await res.text() || 'Error');
+          // server sends: "Access name already exists" / "Access code already exists" / etc.
+          errEl.textContent = text;
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        window.location.reload();
+      } catch (err) {
+        errEl.textContent = 'Unexpected error: ' + err.message;
+        errEl.classList.remove('hidden');
+      }
+    });
+  })();
+
+  // Columns toggle (Created/Updated)
+  (function() {
+    const STORAGE_KEY = 'invitesColsV1';
+    const defaultState = { created: true, updated: true };
+    const state = { ...defaultState, ...(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')) };
+
+    const colMenu = document.getElementById('colMenu');
+    const colBtn  = document.getElementById('colBtn');
+    const checkboxes = Array.from(document.querySelectorAll('[data-colchk]'));
+
+    function apply() {
+      for (const key of Object.keys(defaultState)) {
+        const visible = !!state[key];
+        document.querySelectorAll('[data-col="'+key+'"]').forEach(el => {
+          el.classList.toggle('hidden', !visible);
+        });
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      checkboxes.forEach(cb => cb.checked = !!state[cb.getAttribute('data-colchk')]);
+    }
+
+    colBtn?.addEventListener('click', () => colMenu.classList.toggle('hidden'));
+    document.addEventListener('click', (e) => {
+      if (!colMenu.contains(e.target) && !colBtn.contains(e.target)) colMenu.classList.add('hidden');
+    });
+
+    checkboxes.forEach(cb => cb.addEventListener('change', () => {
+      const key = cb.getAttribute('data-colchk');
+      state[key] = cb.checked;
+      apply();
+    }));
+
+    apply();
+  })();
+</script>

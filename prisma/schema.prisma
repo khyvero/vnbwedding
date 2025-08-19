@@ -1,0 +1,73 @@
+// Prisma schema for Wedding RSVP + Invites
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Invite {
+  id              Int     @id @default(autoincrement())
+  rsvpId          Int?    @unique
+  rsvp            RSVP?   @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  guestId         Int?    @unique
+  guest           Guest?  @relation(fields: [guestId], references: [id], onDelete: Cascade)
+
+  accessName      String? @unique
+  accessCodeHash  String? @unique
+  canViewPrivate  Boolean @default(false)
+  maxGuests       Int?
+
+  group           String   @default("guest")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model RSVP {
+  id              Int       @id @default(autoincrement())
+  placeCardName   String?           // <-- make optional so admin can create without it
+  email           String?
+  dietary         String?
+  ceremony        Boolean?          // null = not answered yet
+  reception       Boolean?          // null = not answered yet
+  transport       Boolean?
+  driving         Boolean?
+  printedInvite   Boolean?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  // Relations
+  guests          Guest[]
+  invite          Invite?           // backref to access/invite
+
+  // (Legacy access fields—kept for now; not used once Invite is live)
+  accessName      String?
+  accessCodeHash  String?
+
+  @@index([createdAt])
+}
+
+model Guest {
+  id              Int      @id @default(autoincrement())
+  rsvpId          Int
+  rsvp            RSVP     @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+
+  placeCardName   String
+  dietary         String?
+  createdAt       DateTime @default(now())   // for accurate "When" on +1 rows
+  updatedAt       DateTime @default(now()) @updatedAt   // <-- add @default(now())
+
+  invite          Invite?                    // backref to access/invite
+
+  // (Legacy access fields—kept for now)
+  accessName      String?
+  accessCodeHash  String?
+
+  @@index([rsvpId])
+  @@index([createdAt])
+}

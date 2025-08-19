@@ -1,0 +1,12 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="20px" font-family="Helvetica">You're invited!</mj-text>
+        <mj-text>Dear Guest,</mj-text>
+        <mj-text>We'd love to celebrate with you. Please RSVP at the link below.</mj-text>
+        <mj-button href="https://example.com/rsvp">RSVP</mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

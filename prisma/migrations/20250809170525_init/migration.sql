@@ -1,0 +1,10 @@
+-- CreateTable
+CREATE TABLE "RSVP" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "attending" BOOLEAN NOT NULL,
+    "guestsCount" INTEGER NOT NULL DEFAULT 1,
+    "message" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

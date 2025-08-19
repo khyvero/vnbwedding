@@ -1,0 +1,45 @@
+<% layout('layout', { fullWidth: true, pageTitle: 'Photo Gallery' }) -%>
+
+<%- include('partials/main-header', { page: 'gallery', viewer, csrfToken }) %>
+
+<div class="max-w-6xl mx-auto px-4 pt-40 pb-12">
+  <h1 class="serif text-4xl mb-4">Photo Gallery</h1>
+
+  <% if (viewer) { %>
+    <div class="space-y-12">
+      <section>
+        <h2 class="serif text-3xl mb-4">Guest Photos</h2>
+        <div class="bg-stone-100 border rounded-lg p-8 text-center">
+          <p class="text-stone-600">The ability for guests to upload photos will be enabled after the wedding day.</p>
+          <p class="text-stone-500 text-sm mt-2">Please check back here after October 3rd, 2025!</p>
+          <button type="button" disabled class="mt-4 px-4 py-2 rounded-lg bg-stone-300 text-stone-500 cursor-not-allowed">
+            Upload Your Photos
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="serif text-3xl mb-4">Photos From Us</h2>
+        <div class="bg-stone-100 border rounded-lg p-8 text-center">
+          <p class="text-stone-600">We will be sharing our official wedding photos and group pictures here for you to download.</p>
+          <p class="text-stone-500 text-sm mt-2">This gallery will become available a few weeks after the wedding.</p>
+          <button type="button" disabled class="mt-4 px-4 py-2 rounded-lg bg-stone-300 text-stone-500 cursor-not-allowed">
+            View & Download Photos
+          </button>
+        </div>
+      </section>
+    </div>
+  <% } else { %>
+    <div class="bg-stone-100 border rounded-lg p-8 text-center">
+      <p class="text-stone-600">This gallery is only available to our guests.</p>
+      <p class="text-stone-500 text-sm mt-2">Please enter the access code from your invitation to view the photos.</p>
+      <button
+        id="accessBtn"
+        type="button"
+        class="mt-4 px-4 py-2 rounded-lg bg-stone-800 text-white hover:bg-stone-700"
+        aria-label="Enter access code to login">
+        Enter Access Code
+      </button>
+    </div>
+  <% } %>
+</div>

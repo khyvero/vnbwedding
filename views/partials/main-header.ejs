@@ -1,0 +1,129 @@
+<%
+  const isHome = (typeof page !== 'undefined' && page === 'home');
+  const headerClasses = [
+    'fixed', 'inset-x-0', 'top-0', 'z-50', 'transition-colors', 'duration-300',
+    isHome ? 'text-white' : 'text-stone-900 bg-white shadow-sm'
+  ].join(' ');
+  const logoSrc = isHome ? '/visual_assets/public/logo_white_100x100.svg' : '/visual_assets/public/logo_color_100x100.svg';
+  const timelineLink = isHome ? '#timeline' : '/#timeline';
+  const registryLink = isHome ? '#registry' : '/#registry';
+  const faqsLink = isHome ? '#faqs' : '/#faqs';
+%>
+
+<header id="page-header" class="<%= headerClasses %> pt-[env(safe-area-inset-top,0px)]">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="grid grid-cols-3 items-center h-32">
+      
+      <!-- Left: Desktop Nav -->
+      <div class="hidden md:flex justify-self-start">
+        <nav class="flex items-center space-x-6 text-sm">
+          <a href="<%= timelineLink %>" class="hover:opacity-80">Timeline</a>
+          <a href="/story" class="hover:opacity-80">Our Story</a>
+          <a href="<%= registryLink %>" class="hover:opacity-80">Registry</a>
+        </nav>
+      </div>
+
+      <!-- Center: Logo -->
+      <div class="justify-self-center col-start-2">
+        <a href="/" aria-label="Home — Veronica & Bishoy">
+          <img src="<%= logoSrc %>" alt="Veronica & Bishoy — wedding logo" class="h-32 w-auto select-none" draggable="false" />
+        </a>
+      </div>
+
+      <!-- Right: Desktop Actions & Mobile Menu Button -->
+      <div class="justify-self-end">
+        <!-- Desktop -->
+        <div class="hidden md:flex items-center gap-6 text-sm">
+          <a href="<%= faqsLink %>" class="hover:opacity-80">FAQs</a>
+          <a href="/contact" class="hover:opacity-80">Contact</a>
+          <% if (viewer) { %>
+            <a href="/gallery" class="hover:opacity-80">Gallery</a>
+          <% } %>
+          <div class="w-px h-5 <%= isHome ? 'bg-white/30' : 'bg-stone-900/20' %>" aria-hidden="true"></div>
+          <% if (viewer) { %>
+            <form id="logoutForm" method="post" action="/access/logout" class="hidden"><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
+            <button id="logoutBtn" type="button" class="hover:opacity-80" aria-label="Logout">Logout</button>
+          <% } else { %>
+            <button id="accessBtn" type="button" class="hover:opacity-80" aria-label="Enter access code to login">Login</button>
+          <% } %>
+        </div>
+        <!-- Mobile -->
+        <div class="md:hidden">
+          <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md <%= isHome ? 'text-white hover:bg-white/20' : 'text-stone-900 hover:bg-stone-100' %> focus:outline-none">
+            <span class="sr-only">Open main menu</span>
+            <svg id="hamburger-icon-closed" class="h-6 w-6 block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            <svg id="hamburger-icon-open" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="md:hidden hidden bg-[#1E2A44]/95 backdrop-blur-md">
+    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+      <a href="<%= timelineLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Timeline</a>
+      <a href="/story" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Our Story</a>
+      <a href="<%= registryLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Registry</a>
+      <a href="<%= faqsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">FAQs</a>
+      <a href="/contact" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Contact</a>
+      <% if (viewer) { %>
+        <a href="/gallery" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Gallery</a>
+      <% } %>
+    </div>
+    <div class="pt-4 pb-3 border-t border-white/20">
+      <div class="flex items-center px-5">
+        <% if (viewer) { %>
+          <button id="mobileLogoutBtn" type="button" class="w-full text-left rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/20" aria-label="Logout">Logout</button>
+        <% } else { %>
+          <button id="mobileAccessBtn" type="button" class="w-full text-left rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/20" aria-label="Enter access code to login">Login</button>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  // --- Header Logic ---
+  (function() {
+    const header = document.getElementById('page-header');
+    const isHome = <%- isHome %>;
+
+    // --- Sticky Header Background ---
+    if (header && isHome) {
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+          header.classList.add('bg-[#1E2A44]/80', 'backdrop-blur-sm');
+        } else {
+          header.classList.remove('bg-[#1E2A44]/80', 'backdrop-blur-sm');
+        }
+      });
+    }
+
+    // --- Mobile Menu ---
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const iconOpen = document.getElementById('hamburger-icon-open');
+    const iconClosed = document.getElementById('hamburger-icon-closed');
+    
+    if (mobileMenuButton) {
+      mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        iconOpen.classList.toggle('hidden');
+        iconClosed.classList.toggle('hidden');
+      });
+    }
+
+    // --- Mobile Button Wiring ---
+    const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', () => document.getElementById('logoutForm')?.submit());
+    }
+
+    const mobileAccessBtn = document.getElementById('mobileAccessBtn');
+    if (mobileAccessBtn) {
+        // The showAccessModal function is defined globally in layout.ejs
+        mobileAccessBtn.addEventListener('click', () => window.showAccessModal && window.showAccessModal('/'));
+    }
+  })();
+</script>

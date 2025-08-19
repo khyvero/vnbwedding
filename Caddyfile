@@ -1,0 +1,8 @@
+:80 {
+  encode zstd gzip
+  handle_path /public/* {
+    root * /app
+    file_server
+  }
+  reverse_proxy app:3000
+}

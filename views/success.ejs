@@ -1,0 +1,66 @@
+<% layout('layout') -%>
+<% const anyConcierge = (transport === true) || (driving === true) || (printedInvite === true); %>
+
+<!-- Modal overlay -->
+<div id="popup" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+  <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl p-6">
+    <div class="space-y-4">
+      <% if (ceremony && reception) { %>
+        <p>Dear <strong><%= name %></strong>,</p>
+        <p>Thank you for your RSVP! We’re thrilled you’ll join us for both the ceremony and reception.</p>
+        <% if (anyConcierge) { %>
+          <p>If you’ve requested transport or a printed invitation, we’ll be in touch. Menu choices will follow closer to the day.</p>
+        <% } %>
+        <p>We can’t wait to celebrate with you on Friday, 3rd October 2025! 💛</p>
+        <p>With love,<br>Veronica & Bishoy</p>
+      <% } else if (ceremony && !reception) { %>
+        <p>Dear <strong><%= name %></strong>,</p>
+        <p>Thank you for your RSVP! We’re so pleased you’ll be with us for the ceremony.</p>
+        <% if (printedInvite === true) { %>
+          <p>If you’ve requested a printed invitation, we’ll be in touch. You’re welcome to update your RSVP if you’d like to join the reception — please do so before the deadline.</p>
+        <% } else { %>
+          <p>You’re welcome to update your RSVP if you’d like to join the reception — please do so before the deadline.</p>
+        <% } %>
+        <p>We can’t wait to share this beautiful moment with you! 💛</p>
+        <p>Veronica & Bishoy</p>
+      <% } else if (!ceremony && reception) { %>
+        <p>Dear <strong><%= name %></strong>,</p>
+        <p>Thank you for your RSVP! We’re delighted you’ll be with us for the reception.</p>
+        <% if ((driving === true) || (printedInvite === true)) { %>
+          <p>If you’ve requested a printed invitation, we’ll be in touch. You can update your RSVP if you’d like to attend the ceremony — please do so before the deadline.</p>
+        <% } else { %>
+          <p>You can update your RSVP if you’d like to attend the ceremony — please do so before the deadline.</p>
+        <% } %>
+        <p>We can’t wait to raise a glass with you! 💛</p>
+        <p>Veronica & Bishoy</p>
+      <% } else { %>
+        <p>Dear <strong><%= name %></strong>,</p>
+        <p>Thank you for your RSVP! We’d be honoured to have you join us online.</p>
+        <p>We’ll share the private live-stream link and details before 3rd October 2025. If your plans change and you can attend in person, please update your RSVP before the deadline.</p>
+        <p>Your love and good wishes mean the world to us, near or far. 💛</p>
+        <p>Veronica & Bishoy</p>
+      <% } %>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3">
+      <a href="/" class="rounded-xl px-4 py-2 bg-stone-900 text-white hover:bg-stone-800">OK</a>
+    </div>
+  </div>
+</div>
+
+<!-- Fallback content if JS disabled -->
+<noscript>
+  <section class="text-center bg-white p-10 rounded-xl shadow-sm">
+    <p>Please enable JavaScript to see the confirmation popup.</p>
+    <a href="/" class="inline-block mt-6 rounded-xl px-5 py-3 bg-stone-900 text-white hover:bg-stone-800">Back to Home</a>
+  </section>
+</noscript>
+
+<script>
+  // auto-open the modal
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('popup');
+    if (el) el.classList.remove('hidden');
+    if (el) el.classList.add('flex');
+  });
+</script>

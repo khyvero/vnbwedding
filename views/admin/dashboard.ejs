@@ -1,0 +1,473 @@
+<% layout('layout') -%>
+
+<div class="flex items-center justify-between mb-4">
+  <h2 class="serif text-3xl">Admin — RSVPs</h2>
+  <div class="flex items-center gap-2">
+    <a href="/admin/invites"
+       class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">Invited List</a>
+    <a href="/"
+       class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">Preview</a>
+    <form method="POST" action="/admin/logout" style="display:inline;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">Logout</button>
+    </form>
+  </div>
+</div>
+
+<!-- Summary cards -->
+<div class="grid gap-4 mb-4 md:grid-cols-3">
+  <div class="p-4 bg-white rounded-xl shadow-sm">
+    <div class="text-2xl font-semibold"><%= counts.total %></div>
+    <div class="text-stone-500">Total Primary RSVPs</div>
+  </div>
+  <div class="p-4 bg-white rounded-xl shadow-sm">
+    <div class="text-2xl font-semibold"><%= counts.ceremonyYes %></div>
+    <div class="text-stone-500">Ceremony · Yes</div>
+  </div>
+  <div class="p-4 bg-white rounded-xl shadow-sm">
+    <div class="text-2xl font-semibold"><%= counts.receptionYes %></div>
+    <div class="text-stone-500">Reception · Yes</div>
+  </div>
+</div>
+
+<!-- Filters toolbar (under counters) -->
+<div class="flex items-center gap-4 mb-6">
+  <!-- Row selector (filters) -->
+  <div class="relative">
+    <button id="rowBtn" type="button"
+            class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
+      Rows
+    </button>
+
+    <div id="rowMenu"
+         class="hidden absolute left-0 mt-2 w-72 bg-white border rounded-xl shadow-lg p-3 space-y-3 z-50">
+      <p class="text-xs text-stone-500">Filter rows</p>
+
+      <!-- Show all rows -->
+      <button type="button" id="rowsShowAll"
+              class="w-full rounded-lg border px-3 py-2 text-sm hover:bg-stone-50">
+        Show all rows
+      </button>
+
+      <div class="border-t"></div>
+
+      <!-- Duplicates / Matches -->
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" data-dupe="name"> Same name
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" data-dupe="place"> Same place-card name
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" data-dupe="cross"> Name ↔ Place Card (across rows)
+      </label>
+
+      <div class="border-t"></div>
+
+      <!-- Ceremony -->
+      <div class="text-xs text-stone-500">Ceremony</div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="ceremony" value="" checked> Any
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="ceremony" value="attend"> Attending
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="ceremony" value="not"> Not attending
+      </label>
+
+      <!-- Reception -->
+      <div class="text-xs text-stone-500">Reception</div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="reception" value="" checked> Any
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="reception" value="attend"> Attending
+      </label>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="radio" name="reception" value="not"> Not attending
+      </label>
+
+      <!-- Bottom row: match Columns layout -->
+      <div class="pt-2 border-t mt-2">
+        <!-- Highlight on its own line -->
+        <label class="flex items-center gap-2 text-sm mb-2">
+          <input type="checkbox" id="hlDupes"> Highlight duplicates
+        </label>
+
+        <!-- Separator line -->
+        <div class="border-t my-2"></div>
+
+        <!-- Next line: Select all (left) / Select none (right) -->
+        <div class="flex justify-between">
+          <button type="button" id="rowAll"  class="text-xs underline">Select all</button>
+          <button type="button" id="rowNone" class="text-xs underline">Select none</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Column selector -->
+  <div class="relative">
+    <button id="colBtn" type="button"
+            class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
+      Columns
+    </button>
+    <div id="colMenu"
+         class="hidden absolute left-0 mt-2 w-56 bg-white border rounded-xl shadow-lg p-3 space-y-2 z-50">
+      <p class="text-xs text-stone-500">Show/Hide columns</p>
+
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="name" checked> Name</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="place" checked> Place Card Name</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="ceremony" checked> Ceremony</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="reception" checked> Reception</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="dietary" checked> Dietary</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="transport" checked> Transport</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="driving" checked> Driving</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="printed" checked> Printed</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="notes" checked> Notes</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="when" checked> When</label>
+
+      <div class="flex justify-between pt-2 border-t mt-2">
+        <button type="button" id="colAll" class="text-xs underline">Select all</button>
+        <button type="button" id="colNone" class="text-xs underline">Select none</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overflow-x-auto">
+  <table class="w-full text-sm bg-white rounded-xl shadow-sm overflow-hidden">
+    <thead class="bg-stone-100">
+      <tr>
+        <th class="text-left p-3" data-col="name">Name</th>
+        <th class="text-left p-3" data-col="place">Place Card Name</th>
+        <th class="text-left p-3" data-col="ceremony">Ceremony</th>
+        <th class="text-left p-3" data-col="reception">Reception</th>
+        <th class="text-left p-3" data-col="dietary">Dietary</th>
+        <th class="text-left p-3" data-col="transport">Transport</th>
+        <th class="text-left p-3" data-col="driving">Driving</th>
+        <th class="text-left p-3" data-col="printed">Printed</th>
+        <th class="text-left p-3" data-col="notes">Notes</th>
+        <th class="text-left p-3" data-col="when">When</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(row => { const dupes = Array.isArray(row._dupes) ? row._dupes.join(',') : ''; %>
+        <tr class="border-t align-top"
+            data-name="<%= (row.name || '').trim().toLowerCase() %>"
+            data-place="<%= (row.placeCardName || '').trim().toLowerCase() %>"
+            data-cer="<%= row.ceremony === true ? 'yes' : (row.ceremony === false ? 'no' : 'na') %>"
+            data-rec="<%= row.reception === true ? 'yes' : (row.reception === false ? 'no' : 'na') %>"
+            data-dupes="<%= dupes %>">
+
+          <td class="p-3" data-col="name">
+            <div class="<%= row.kind === 'GUEST' ? 'font-medium' : '' %>"><%= row.name || '' %></div>
+            <% if (row.kind === 'GUEST' && row.addedBy) { %>
+              <div class="text-xs text-stone-500">+1 of <%= row.addedBy %></div>
+            <% } %>
+          </td>
+
+          <td class="p-3" data-col="place"><%= row.placeCardName || '' %></td>
+          <td class="p-3" data-col="ceremony"><%= row.ceremony === true ? 'Yes' : (row.ceremony === false ? 'No' : '—') %></td>
+          <td class="p-3" data-col="reception"><%= row.reception === true ? 'Yes' : (row.reception === false ? 'No' : '—') %></td>
+          <td class="p-3" data-col="dietary"><%= row.dietary || '' %></td>
+          <td class="p-3" data-col="transport"><%= row.transport === true ? 'Yes' : (row.transport === false ? 'No' : '—') %></td>
+          <td class="p-3" data-col="driving"><%= row.driving === true ? 'Yes' : (row.driving === false ? 'No' : '—') %></td>
+          <td class="p-3" data-col="printed"><%= row.printedInvite === true ? 'Yes' : (row.printedInvite === false ? 'No' : '—') %></td>
+          <td class="p-3 whitespace-pre-wrap break-words" data-col="notes"><%= row.notes || '' %></td>
+          <td class="p-3 whitespace-nowrap" data-col="when"><%= new Date(row.when).toLocaleString() %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Guest Modal (creates Invite + RSVP) -->
+<div id="addModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+  <div class="max-w-sm w-full bg-white rounded-2xl shadow-xl p-6">
+    <h3 class="serif text-xl mb-4">Add Guest</h3>
+    <form method="post" action="/admin/invites/create-primary" class="space-y-4" id="addGuestForm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <p class="font-medium">Access name</p>
+        <input name="guestName" required class="w-full rounded-lg border px-3 py-2" placeholder="e.g., Alice Smith">
+      </div>
+      <div>
+        <p class="font-medium">Access code</p>
+        <input name="accessCode" required class="w-full rounded-lg border px-3 py-2" placeholder="e.g., ALICE-2025">
+      </div>
+      <div>
+        <p class="font-medium">Group</p>
+        <select name="inviteGroup" class="w-full rounded-lg border px-3 py-2">
+          <option value="guest" selected>Guest</option>
+          <option value="family">Family</option>
+          <option value="bridesmaids">Bridesmaids</option>
+          <option value="groomsmen">Groomsmen</option>
+        </select>
+      </div>
+
+      <!-- Inline error (hidden by default) -->
+      <p id="addGuestErr" class="text-sm text-red-600 hidden"></p>
+
+      <div class="flex justify-end gap-2">
+        <button type="button" id="closeAdd" class="px-4 py-2 border rounded-lg">Cancel</button>
+        <button class="px-4 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-800">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="mt-4">
+  <button id="openAdd" class="rounded-lg px-4 py-2 bg-stone-900 text-white hover:bg-stone-800 text-sm">
+    Add Guest
+  </button>
+</div>
+
+<script>
+  // ----- Add Guest modal + submit (inline error on duplicates, URL-encoded, CSRF-safe) -----
+  (function(){
+    const modal = document.getElementById('addModal');
+    const form  = document.getElementById('addGuestForm');
+    const errEl = document.getElementById('addGuestErr');
+
+    const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
+    const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+    document.getElementById('openAdd')?.addEventListener('click', () => {
+      errEl?.classList.add('hidden'); errEl.textContent = '';
+      showModal();
+    });
+    document.getElementById('closeAdd')?.addEventListener('click', hideModal);
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl?.classList.add('hidden'); errEl.textContent = '';
+
+      const fd   = new FormData(form);
+      const body = new URLSearchParams(fd);
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body,
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'X-CSRF-Token': fd.get('_csrf') || ''
+          }
+        });
+
+        if (!res.ok) {
+          const text = (await res.text() || 'Error');
+          // server returns: "Access name already exists" / "Access code already exists" / etc.
+          errEl.textContent = text;
+          errEl.classList.remove('hidden');
+          return; // keep modal open for correction
+        }
+
+        window.location.reload(); // success
+      } catch (err) {
+        errEl.textContent = 'Unexpected error: ' + err.message;
+        errEl.classList.remove('hidden');
+      }
+    });
+  })();
+
+  // ----- Rows (filters) dropdown -----
+  (function() {
+    const STORAGE_ROWS = 'adminRowsV3';
+    const STORAGE_HL   = 'adminRowsHLV3';
+
+    const rowBtn  = document.getElementById('rowBtn');
+    const rowMenu = document.getElementById('rowMenu');
+    const rows    = Array.from(document.querySelectorAll('tbody tr'));
+
+    // Open/close
+    rowBtn?.addEventListener('click', (e) => { e.stopPropagation(); rowMenu.classList.toggle('hidden'); });
+    document.addEventListener('click', (e) => {
+      if (!rowMenu.contains(e.target) && !rowBtn.contains(e.target)) rowMenu.classList.add('hidden');
+    });
+
+    // Controls (match your HTML)
+    const dupeChecks = Array.from(document.querySelectorAll('#rowMenu [data-dupe]')); // name | place | equal | cross
+    const cerRadios  = Array.from(document.querySelectorAll('#rowMenu input[name="ceremony"]'));  // "" | "attend" | "not"
+    const recRadios  = Array.from(document.querySelectorAll('#rowMenu input[name="reception"]')); // "" | "attend" | "not"
+    const hlDupes    = document.getElementById('hlDupes');
+
+    // Precompute counts (case-insensitive via data-* which are lowercased)
+    const countBy = (keyOf) => {
+      const m = new Map();
+      rows.forEach(tr => {
+        const k = keyOf(tr);
+        if (!k) return;
+        m.set(k, (m.get(k) || 0) + 1);
+      });
+      return m;
+    };
+    const nameCounts  = countBy(tr => (tr.dataset.name  || '').trim());
+    const placeCounts = countBy(tr => (tr.dataset.place || '').trim());
+    const pairCounts  = countBy(tr => {
+      const n = (tr.dataset.name  || '').trim();
+      const p = (tr.dataset.place || '').trim();
+      if (!n && !p) return '';
+      return `${n}||${p}`;
+    });
+
+    // Prefer server-provided dupes if present
+    const hasServer = (tr, k) =>
+      (tr.dataset.dupes || '').split(',').map(s => s.trim()).filter(Boolean).includes(k);
+
+    const tidy = s => (s || '').trim();
+
+    const isDupeName  = (tr) => hasServer(tr,'dupe_name')  || (tidy(tr.dataset.name)  && (nameCounts.get(tidy(tr.dataset.name))  > 1));
+    const isDupePlace = (tr) => hasServer(tr,'dupe_place') || (tidy(tr.dataset.place) && (placeCounts.get(tidy(tr.dataset.place)) > 1));
+    const isDupePair  = (tr) => hasServer(tr,'dupe_pair')  || (() => {
+      const n = tidy(tr.dataset.name);
+      const p = tidy(tr.dataset.place);
+      return (n || p) && (pairCounts.get(`${n}||${p}`) > 1);
+    })();
+
+    // Within-row exact equality (visible text, case-sensitive)
+    const isEqualWithin = (tr) => {
+      const n = (tr.querySelector('[data-col="name"]')?.innerText || '').trim();
+      const p = (tr.querySelector('[data-col="place"]')?.innerText || '').trim();
+      return n && p && n === p;
+    };
+
+    // Cross-row name ↔ place with self-exclusion
+    function nameInSomeoneElsesPlace(tr) {
+      const n = tidy(tr.dataset.name);
+      if (!n) return false;
+      const p = tidy(tr.dataset.place);
+      const count = placeCounts.get(n) || 0;
+      const selfAlsoThatPlace = (p && p === n);
+      return count > (selfAlsoThatPlace ? 1 : 0);
+    }
+    function placeInSomeoneElsesName(tr) {
+      const p = tidy(tr.dataset.place);
+      if (!p) return false;
+      const n = tidy(tr.dataset.name);
+      const count = nameCounts.get(p) || 0;
+      const selfAlsoThatName = (n && n === p);
+      return count > (selfAlsoThatName ? 1 : 0);
+    }
+    const isCrossNP = (tr) => nameInSomeoneElsesPlace(tr) || placeInSomeoneElsesName(tr);
+
+    function readState() {
+      return {
+        dupe: dupeChecks.filter(c => c.checked).map(c => c.getAttribute('data-dupe')), // ['name','place','equal','cross']
+        cer:  (cerRadios.find(r => r.checked) || {}).value || "",
+        rec:  (recRadios.find(r => r.checked) || {}).value || "",
+        hl:   !!hlDupes?.checked
+      };
+    }
+
+    function passesDupe(tr, arr) {
+      if (arr.length === 0) return true; // no dupe filter selected → pass all
+      return arr.some(tag => {
+        if (tag === 'name')  return isDupeName(tr);
+        if (tag === 'place') return isDupePlace(tr);
+        if (tag === 'equal') return isEqualWithin(tr);
+        if (tag === 'cross') return isCrossNP(tr);
+        return false;
+      });
+    }
+    function passesCer(tr, cer) {
+      if (!cer) return true;
+      const c = tr.dataset.cer; // 'yes' | 'no' | 'na'
+      if (cer === 'attend') return c === 'yes';
+      if (cer === 'not')    return c !== 'yes';
+      return true;
+    }
+    function passesRec(tr, rec) {
+      if (!rec) return true;
+      const r = tr.dataset.rec;
+      if (rec === 'attend') return r === 'yes';
+      if (rec === 'not')    return r !== 'yes';
+      return true;
+    }
+
+    function applyRows() {
+      const st = readState();
+      rows.forEach(tr => {
+        const show = passesDupe(tr, st.dupe) && passesCer(tr, st.cer) && passesRec(tr, st.rec);
+        tr.classList.toggle('hidden', !show);
+
+        const highlight = isDupeName(tr) || isDupePlace(tr) || isDupePair(tr);
+        tr.classList.toggle('bg-yellow-50', !!st.hl && highlight);
+      });
+      localStorage.setItem(STORAGE_ROWS, JSON.stringify(st));
+      localStorage.setItem(STORAGE_HL, st.hl ? '1' : '0');
+    }
+
+    // Restore previous state
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_ROWS) || '{}');
+      if (Array.isArray(saved.dupe)) {
+        dupeChecks.forEach(cb => cb.checked = saved.dupe.includes(cb.getAttribute('data-dupe')));
+      }
+      (cerRadios.find(r => r.value === (saved.cer || ""))) || cerRadios[0]).checked = true;
+      (recRadios.find(r => r.value === (saved.rec || ""))) || recRadios[0]).checked = true;
+    } catch {}
+    const savedHL = localStorage.getItem(STORAGE_HL);
+    if (savedHL) hlDupes.checked = savedHL === '1';
+
+    // Wire events
+    dupeChecks.forEach(cb => cb.addEventListener('change', applyRows));
+    [...cerRadios, ...recRadios].forEach(r => r.addEventListener('change', applyRows));
+    hlDupes?.addEventListener('change', applyRows);
+
+    // Top/bottom buttons
+    document.getElementById('rowsShowAll')?.addEventListener('click', () => {
+      dupeChecks.forEach(cb => cb.checked = false);
+      cerRadios.find(r => r.value === "").checked = true;
+      recRadios.find(r => r.value === "").checked = true;
+      applyRows();
+    });
+    document.getElementById('rowAll') ?.addEventListener('click', () => { dupeChecks.forEach(cb => cb.checked = true);  applyRows(); });
+    document.getElementById('rowNone')?.addEventListener('click', () => { dupeChecks.forEach(cb => cb.checked = false); applyRows(); });
+
+    applyRows();
+  })();
+
+  // ----- Columns dropdown -----
+  (function() {
+    const STORAGE_COLS = 'adminColsV1';
+    const colBtn  = document.getElementById('colBtn');
+    const colMenu = document.getElementById('colMenu');
+    const cbs     = Array.from(document.querySelectorAll('[data-colchk]'));
+
+    colBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      colMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+      if (!colMenu.contains(e.target) && !colBtn.contains(e.target)) colMenu.classList.add('hidden');
+    });
+
+    function apply() {
+      const state = Object.fromEntries(cbs.map(cb => [cb.getAttribute('data-colchk'), cb.checked]));
+      document.querySelectorAll('[data-col]').forEach(cell => {
+        const key = cell.getAttribute('data-col');
+        cell.classList.toggle('hidden', state[key] === false);
+      });
+      localStorage.setItem(STORAGE_COLS, JSON.stringify(state));
+    }
+
+    // restore
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_COLS) || '{}');
+      cbs.forEach(cb => {
+        const key = cb.getAttribute('data-colchk');
+        if (saved[key] === false) cb.checked = false;
+      });
+    } catch {}
+
+    cbs.forEach(cb => cb.addEventListener('change', apply));
+    document.getElementById('colAll') ?.addEventListener('click', () => { cbs.forEach(cb => cb.checked = true);  apply(); });
+    document.getElementById('colNone')?.addEventListener('click', () => { cbs.forEach(cb => cb.checked = false); apply(); });
+
+    apply();
+  })();
+</script>

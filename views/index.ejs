@@ -1,0 +1,136 @@
+<% layout('layout', { fullWidth: true, pageTitle: "Veronica & Bishoy's Wedding" }) -%>
+
+<%- include('partials/main-header', { page: 'home', viewer, csrfToken }) %>
+
+<!-- Full-bleed hero -->
+<section class="relative w-screen h-[100svh] ml-[calc(50%-50vw)] mr-[calc(50%-50vw)] overflow-hidden isolate">
+
+  <!-- Background photo -->
+  <img
+    src="/visual_assets/public/index/index_photo02.png"
+    alt="Veronica & Bishoy"
+    class="absolute inset-0 w-full h-full object-cover object-[50%_35%] z-0 select-none pointer-events-none"
+    draggable="false"
+    loading="eager"
+    fetchpriority="high"
+  />
+
+  <!-- Gradient overlays -->
+  <div class="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-[#B9D6E6]/40 via-[#B9D6E6]/20 to-transparent"></div>
+  <div class="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/70 via-black/30 to-transparent"></div>
+
+  <!-- Hero content -->
+  <div class="relative z-20 flex h-full items-center justify-center pointer-events-none">
+    <div class="text-center text-white px-6 transform -translate-y-24 md:-translate-y-18 pointer-events-auto">
+      <h1 class="serif text-5xl md:text-6xl font-semibold drop-shadow-sm">
+        Veronica &amp; Bishoy
+      </h1>
+
+      <p class="mt-4 text-lg opacity-90">
+        Friday, 3 October 2025 · Berlin
+      </p>
+
+      <p class="mt-6 max-w-3xl mx-auto text-base md:text-lg opacity-90">
+        <% if (viewer && viewer.name) { %>
+          <span class="block mb-1">Dear <span class="font-semibold"><%= viewer.name %></span>,</span>
+        <% } %>
+        We’re so excited to celebrate with you. Join us for a day filled with love, laughter,
+        and cherished moments as we start our next chapter.
+      </p>
+
+      <!-- Countdown (simple white text, smaller) -->
+      <div class="mt-8 flex items-end justify-center gap-6 text-white">
+        <div class="text-center">
+          <div id="cd-days" class="text-3xl font-semibold tabular-nums">--</div>
+          <div class="text-[10px] uppercase tracking-wide opacity-90">Days</div>
+        </div>
+        <div class="text-center">
+          <div id="cd-hours" class="text-3xl font-semibold tabular-nums">--</div>
+          <div class="text-[10px] uppercase tracking-wide opacity-90">Hours</div>
+        </div>
+        <div class="text-center">
+          <div id="cd-mins" class="text-3xl font-semibold tabular-nums">--</div>
+          <div class="text-[10px] uppercase tracking-wide opacity-90">Minutes</div>
+        </div>
+        <div class="text-center">
+          <div id="cd-secs" class="text-3xl font-semibold tabular-nums">--</div>
+          <div class="text-[10px] uppercase tracking-wide opacity-90">Seconds</div>
+        </div>
+      </div>
+
+      <p id="cd-label" class="mt-3 text-xs opacity-90 text-white">Counting down to the celebration…</p>
+
+      <button
+        id="rsvpBtn"
+        type="button"
+        class="mt-6 inline-flex items-center rounded-full bg-[#1E2A44] text-white px-6 py-3 shadow hover:bg-[#2a3b5a]"
+        onclick="<% if (viewer) { %>window.location.href='/rsvp'<% } else { %>window.showAccessModal('/rsvp')<% } %>"
+      >
+        RSVP
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Content anchors -->
+<section id="timeline" class="max-w-6xl mx-auto px-4 py-24">
+  <h2 class="serif text-3xl mb-4">Timeline</h2>
+  <p class="text-stone-600">Coming soon…</p>
+</section>
+
+<section id="registry" class="bg-stone-50/60 border-t">
+  <div class="max-w-6xl mx-auto px-4 py-24">
+    <h2 class="serif text-3xl mb-4">Registry</h2>
+    <p class="text-stone-600">Coming soon…</p>
+  </div>
+</section>
+
+<section id="faqs" class="max-w-6xl mx-auto px-4 py-24">
+  <h2 class="serif text-3xl mb-4">FAQs</h2>
+  <p class="text-stone-600">Coming soon…</p>
+</section>
+
+<script>
+  // --- Countdown (Berlin time) ---
+  (function(){
+    const target = new Date('2025-10-03T12:00:00+02:00'); // Europe/Berlin
+    const d = document.getElementById('cd-days');
+    const h = document.getElementById('cd-hours');
+    const m = document.getElementById('cd-mins');
+    const s = document.getElementById('cd-secs');
+    const lbl = document.getElementById('cd-label');
+    const pad = n => String(n).padStart(2,'0');
+
+    function update(){
+      const now = new Date();
+      let diff = target - now;
+
+      if (diff <= 0) {
+        d.textContent = '00'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
+        const bNow = new Date(now.toLocaleString('en-GB', { timeZone: 'Europe/Berlin' }));
+        const bTar = new Date(target.toLocaleString('en-GB', { timeZone: 'Europe/Berlin' }));
+        const same = bNow.getFullYear()===bTar.getFullYear() && bNow.getMonth()===bTar.getMonth() && bNow.getDate()===bTar.getDate();
+        lbl.textContent = same ? "It's today! 🎉" : "Happily ever after has begun 💍";
+        return;
+      }
+
+      const sec = Math.floor(diff/1000);
+      const dd  = Math.floor(sec/86400);
+      const hh  = Math.floor((sec % 86400) / 3600);
+      const mm  = Math.floor((sec % 3600) / 60);
+      const ss  = sec % 60;
+
+      d.textContent = String(dd);
+      h.textContent = pad(hh);
+      m.textContent = pad(mm);
+      s.textContent = pad(ss);
+      lbl.textContent = "Counting down to the celebration…";
+    }
+
+    (function tick(){
+      update();
+      const now = Date.now();
+      setTimeout(tick, 1000 - (now % 1000));
+    })();
+  })();
+</script>

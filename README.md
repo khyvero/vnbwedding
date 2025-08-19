@@ -8,51 +8,45 @@ Minimal, portable RSVP site you can deploy anywhere (shared hosting, Docker, or 
 
 This section serves as a memory bank, tracking all development progress.
 
-**Last Updated:** 2024-07-27
+**Last Updated:** 2024-07-29
 
 **✅ Completed Tasks:**
 
-1.  **Shared Navigation & Site Consistency:**
-    *   Refactored the main header into a reusable EJS partial (`views/partials/main-header.ejs`).
-    *   The header now adapts its style: a transparent version for the homepage's hero section and a solid, light-themed version for all other internal pages.
-    *   Added the shared navigation bar to the "Our Story" and "Photo Gallery" pages, ensuring a consistent user experience across the site.
+1.  **Homepage Content & Styling:**
+    *   **Locations Section:** Added a new "Locations" section to the homepage with details for the Ceremony and Party venues.
+    *   **Layout Refinement:** The section's title is now correctly left-aligned, and the venues are presented in a clean, vertical list that matches the page's global style. Each location's details are on the left, with the directions button on the right.
+    *   **Button Styling:** The "Show me directions" buttons have been styled to resemble Google Maps buttons, complete with a map pin icon, for a more intuitive user experience.
 
-2.  **Theming and Styling:**
+2.  **Layout & Navigation:**
+    *   **Updated Navigation:** The main navigation links have been updated to: "Timeline", "Locations", "Story", and "Registry".
+    *   **"Contact" Link:** The "Contact" button now smoothly scrolls the user to the footer of the page instead of navigating to a separate page.
+    *   **Architectural Refactor:** The main header and footer have been centralized into the primary `layout.ejs` file for consistency.
+    *   **Conditional Layout:** The header and footer are now conditionally rendered to hide them on administrative pages (e.g., `/admin`, `/login`), correctly separating the public site from the backend.
+    *   **Bug Fixes:**
+        *   Fixed a critical crash on the "Story" page caused by incorrect variables being passed to the layout.
+        *   Resolved an issue where the site logo was broken on internal pages due to an incorrect file path.
+
+3.  **Admin Dashboard Guest Management (CRUD):**
+    *   **Add, Edit, Delete:** The admin dashboard is now fully functional, allowing for complete guest management.
+    *   **Context-Aware Deletion:** The "Delete" functionality is now context-aware. Deleting a primary guest removes their entire party, while deleting a `+1` guest removes only that individual.
+    *   **Bug Fixes:** Resolved multiple critical bugs, including an unresponsive "Add Guest" button and a recurring server crash caused by incorrect delete logic that conflicted with the database's cascading deletes.
+
+4.  **Admin Authentication:**
+    *   Secured the `/admin` routes using a password stored in the `ADMIN_PASSWORD` environment variable.
+    *   Created a login page (`/admin/login`) and a logout route.
+    *   Access is managed via a signed, HTTP-only cookie.
+
+5.  **Theming and Styling:**
     *   Changed the primary accent color for key elements to a deep blue (`#1E2A44`).
     *   Updated the footer background, RSVP button, and the sticky header's scroll background.
-    *   Ensured the mobile menu background matches the new color scheme for a consistent look.
 
-3.  **RSVP Button Functionality:**
+6.  **RSVP & Access Flow:**
     *   Fixed a bug causing the RSVP button to be unresponsive.
-    *   Implemented conditional logic: if the user is logged in, they are sent to the `/rsvp` page; otherwise, the access modal is shown first.
-    *   After a successful login via the modal, the user is correctly redirected to their original destination (`/rsvp`).
-
-4.  **Access Modal & Page Error Handling:**
-    *   The `/access` server route now correctly returns a JSON error response for invalid codes instead of an unfriendly redirect.
-    *   The standalone `/access` page now uses JavaScript to handle form submissions, displaying validation errors on the page without a full reload.
-
-5.  **Created "Our Story" Page:**
-    *   Added a new server route for `/story`.
-    *   Created the corresponding `story.ejs` view file with placeholder content.
-    *   The navigation link now correctly leads to the new page.
-
-6.  **RSVP Page UI & Logic:**
-    *   Adjusted the layout to display the main "RSVP" title above the user's welcome message.
-    *   Enhanced the form with conditional logic:
-        *   The "transport" question is now only shown if the user is attending **both** the ceremony and the reception.
-        *   All follow-up questions are hidden if the user selects "No" for both the ceremony and reception, streamlining the experience.
-    *   Fixed a critical server error that occurred when a user submitted an RSVP indicating they were not attending either event.
-    *   Adjusted spacing and margins within the form for better visual clarity.
-
-7.  **Homepage Design & Layout:**
-    *   Refined the hero section design by layering a dark gradient over a light blue (`#B9D6E6`) one, creating a unique photo tint while maintaining text readability.
-    *   Implemented a responsive hamburger menu for mobile devices.
-    *   Made the header "sticky" so it remains visible on scroll, with a background effect for readability.
-    *   Restructured the header layout to ensure the logo is always centered, regardless of screen size.
+    *   Implemented conditional logic to show the access modal if a user is not logged in.
+    *   The `/access` route now correctly handles errors and redirects.
 
 **⚠️ Next Steps:**
 
-*   Add auth for `/admin`.
 *   Unique invite links + QR codes.
 *   Email invites (SMTP) with ICS attachment.
 *   Theming (Tailwind via CDN or build pipeline).
@@ -84,7 +78,7 @@ This section serves as a memory bank, tracking all development progress.
 
 - **Express + EJS** server-rendered (no heavy front-end build).
 - **Prisma + SQLite** (file at `prisma/dev.db`).
-- Basic pages: Home, RSVP form, Admin dashboard (read-only).
+- Basic pages: Home, RSVP form, Admin dashboard.
 - Security basics: Helmet, rate-limit, CSRF, cookie parsing.
 - Ready for email, QR invites, ICS — stubs in `src/lib/`.
 

@@ -63,7 +63,7 @@
     <p id="createPrimaryErr" class="text-sm text-red-600 md:col-span-4 hidden"></p>
 
     <div class="md:text-right">
-      <button class="rounded-lg px-4 py-2 bg-stone-900 text-white hover:bg-stone-800">
+      <button type="submit" class="rounded-lg px-4 py-2 bg-stone-900 text-white hover:bg-stone-800">
         Add Guest
       </button>
     </div>
@@ -155,33 +155,42 @@
     const errEl = document.getElementById('createPrimaryErr');
 
     form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errEl?.classList.add('hidden'); errEl.textContent = '';
+      e.preventDefault(); // Prevent default form submission
+      console.log('Form submit event triggered (AJAX)!');
+      errEl?.classList.add('hidden');
+      errEl.textContent = '';
 
       const fd   = new FormData(form);
       const body = new URLSearchParams(fd);
 
       try {
+        const csrfToken = fd.get('_csrf') || ''; // Get token from hidden input
+        console.log('CSRF Token:', csrfToken);
+
         const res = await fetch(form.action, {
           method: 'POST',
           body,
           credentials: 'same-origin',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'X-CSRF-Token': fd.get('_csrf') || ''
+            'csrf-token': csrfToken // Correct header name for csurf
           }
         });
 
+        console.log('Fetch response received:', res.status, res.statusText);
+
         if (!res.ok) {
           const text = (await res.text() || 'Error');
-          // server sends: "Access name already exists" / "Access code already exists" / etc.
+          console.error('Server error response:', text);
           errEl.textContent = text;
           errEl.classList.remove('hidden');
           return;
         }
 
+        console.log('Form submitted successfully, reloading page.');
         window.location.reload();
       } catch (err) {
+        console.error('Unexpected client-side error during fetch:', err);
         errEl.textContent = 'Unexpected error: ' + err.message;
         errEl.classList.remove('hidden');
       }
@@ -192,7 +201,7 @@
   (function() {
     const STORAGE_KEY = 'invitesColsV1';
     const defaultState = { created: true, updated: true };
-    const state = { ...defaultState, ...(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')) };
+    const state = { ...defaultState, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') };
 
     const colMenu = document.getElementById('colMenu');
     const colBtn  = document.getElementById('colBtn');
@@ -211,7 +220,7 @@
 
     colBtn?.addEventListener('click', () => colMenu.classList.toggle('hidden'));
     document.addEventListener('click', (e) => {
-      if (!colMenu.contains(e.target) && !colBtn.contains(e.target)) colMenu.classList.add('hidden');
+      if (colMenu && colBtn && !colMenu.contains(e.target) && !colBtn.contains(e.target)) colMenu.classList.add('hidden');
     });
 
     checkboxes.forEach(cb => cb.addEventListener('change', () => {

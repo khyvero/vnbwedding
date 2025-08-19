@@ -96,8 +96,7 @@ app.get('/', csrfProtection, async (req, res, next) => {
   try {
     const viewer = await getViewer(req);
     const showAdminLink = process.env.SHOW_ADMIN_LINK !== 'false';
-    // No public stats on the homepage
-    res.render('index', { csrfToken: req.csrfToken(), viewer, showAdminLink });
+    res.render('index', { page: 'home', csrfToken: req.csrfToken(), viewer, showAdminLink });
   } catch (err) { next(err); }
 });
 
@@ -319,7 +318,7 @@ function requireAdmin(req, res, next) {
 }
 
 app.get('/admin/login', csrfProtection, (req, res) => {
-  res.render('admin/login', { csrfToken: req.csrfToken(), error: null });
+  res.render('admin/login', { csrfToken: req.csrfToken(), error: null, isAdmin: true });
 });
 
 app.post('/admin/login', csrfProtection, (req, res) => {
@@ -333,7 +332,7 @@ app.post('/admin/login', csrfProtection, (req, res) => {
     });
     res.redirect('/admin');
   } else {
-    res.status(401).render('admin/login', { csrfToken: req.csrfToken(), error: 'Invalid password' });
+    res.status(401).render('admin/login', { csrfToken: req.csrfToken(), error: 'Invalid password', isAdmin: true });
   }
 });
 
@@ -349,8 +348,8 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
     const primaries = await prisma.rSVP.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        invite: { select: { id: true, accessName: true } },
-        guests: { include: { invite: { id: true, accessName: true } } } 
+        invite: { select: { id: true, accessName: true, group: true, maxGuests: true } },
+        guests: { include: { invite: { select: { id: true, accessName: true } } } } 
       },
     });
 
@@ -372,6 +371,8 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
         when: r.createdAt,
         addedBy: null,
         inviteId: r.invite?.id || null,
+        group: r.invite?.group || 'guest',
+        maxGuests: r.invite?.maxGuests || null,
       });
       for (const g of r.guests) {
         rows.push({
@@ -389,6 +390,8 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
           when: g.createdAt || r.createdAt,
           addedBy: r.invite?.accessName || null, // show primary's ACCESS NAME
           inviteId: g.invite?.id || null,
+          group: g.invite?.group || 'guest',
+          maxGuests: g.invite?.maxGuests || null,
         });
       }
     }
@@ -447,7 +450,7 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
                     + (await prisma.guest.count({ where: { rsvp: { reception: true } } })),
     };
 
-    res.render('admin/dashboard', { rows, counts, csrfToken: req.csrfToken() });
+    res.render('admin/dashboard', { rows, counts, csrfToken: req.csrfToken(), isAdmin: true });
   } catch (err) { next(err); }
 });
 
@@ -461,7 +464,7 @@ app.get('/admin/invites', requireAdmin, csrfProtection, async (req, res, next) =
         guest: { select: { id: true, placeCardName: true, rsvpId: true } },
       },
     });
-    res.render('admin/invites', { invites, csrfToken: req.csrfToken() });
+    res.render('admin/invites', { invites, csrfToken: req.csrfToken(), isAdmin: true });
   } catch (e) { next(e); }
 });
 
@@ -497,7 +500,7 @@ app.post('/admin/invites/create-primary', requireAdmin, csrfProtection, async (r
       }
     });
 
-    res.redirect('/admin/invites');
+    res.redirect('/admin');
   } catch (e) { next(e); }
 });
 
@@ -521,11 +524,50 @@ app.post('/admin/invites/:id/update', requireAdmin, csrfProtection, async (req, 
       data: updateData,
     });
 
-    res.redirect('/admin/invites');
+    res.redirect('/admin');
   } catch (e) {
     next(e);
   }
 });
+
+// Deletes an entire RSVP party (the primary guest and all their +1s)
+app.post('/admin/rsvps/:id/delete', requireAdmin, csrfProtection, async (req, res, next) => {
+  try {
+    const rsvpId = parseInt(req.params.id, 10);
+    if (!rsvpId) return res.status(400).send('Invalid RSVP ID');
+
+    // Deleting the RSVP will cascade to the Invite and all associated Guests
+    await prisma.rSVP.delete({ where: { id: rsvpId } });
+    
+    res.redirect('/admin');
+  } catch (e) {
+    if (e.code === 'P2025') {
+      console.warn(`Tried to delete an RSVP that was already gone. ID: ${req.params.id}. Redirecting.`);
+      return res.redirect('/admin');
+    }
+    next(e);
+  }
+});
+
+// Deletes a single Guest (+1)
+app.post('/admin/guests/:id/delete', requireAdmin, csrfProtection, async (req, res, next) => {
+  try {
+    const guestId = parseInt(req.params.id, 10);
+    if (!guestId) return res.status(400).send('Invalid Guest ID');
+
+    // Deleting a Guest will cascade to its own Invite
+    await prisma.guest.delete({ where: { id: guestId } });
+    
+    res.redirect('/admin');
+  } catch (e) {
+    if (e.code === 'P2025') {
+      console.warn(`Tried to delete a guest that was already gone. ID: ${req.params.id}. Redirecting.`);
+      return res.redirect('/admin');
+    }
+    next(e);
+  }
+});
+
 
 // ---------- Health ----------
 app.get('/healthz', (req, res) => res.json({ ok: true }));

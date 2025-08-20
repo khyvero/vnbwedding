@@ -1,5 +1,16 @@
 <% layout('layout') -%>
 
+<style>
+  .highlight-dupes tr[data-dupes*="dupe_"],
+  .highlight-dupes tr[data-dupes*="_in_"] {
+    background-color: #FFFBEB; /* yellow-50 */
+  }
+  .highlight-dupes tr[data-dupes*="dupe_"]:hover,
+  .highlight-dupes tr[data-dupes*="_in_"]:hover {
+    background-color: #FEF3C7; /* yellow-100 */
+  }
+</style>
+
 <div class="flex items-center justify-between mb-4">
   <h2 class="serif text-3xl">Admin — RSVPs</h2>
   <div class="flex items-center gap-2">
@@ -31,114 +42,117 @@
 </div>
 
 <!-- Filters toolbar (under counters) -->
-<div class="flex items-center gap-4 mb-6">
-  <!-- Row selector (filters) -->
-  <div class="relative">
-    <button id="rowBtn" type="button"
-            class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
-      Rows
-    </button>
-
-    <div id="rowMenu"
-         class="hidden absolute left-0 mt-2 w-72 bg-white border rounded-xl shadow-lg p-3 space-y-3 z-50">
-      <p class="text-xs text-stone-500">Filter rows</p>
-
-      <!-- Show all rows -->
-      <button type="button" id="rowsShowAll"
-              class="w-full rounded-lg border px-3 py-2 text-sm hover:bg-stone-50">
-        Show all rows
+<div class="mb-6">
+  <div class="flex items-center gap-4">
+    <!-- Row selector (filters) -->
+    <div class="relative">
+      <button id="rowBtn" type="button"
+              class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
+        Rows
       </button>
 
-      <div class="border-t"></div>
+      <div id="rowMenu"
+           class="hidden absolute left-0 mt-2 w-72 bg-white border rounded-xl shadow-lg p-3 space-y-3 z-50">
+        <p class="text-xs text-stone-500">Filter rows</p>
 
-      <!-- Duplicates / Matches -->
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" data-dupe="name"> Same name
-      </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" data-dupe="place"> Same place-card name
-      </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" data-dupe="cross"> Name ↔ Place Card (across rows)
-      </label>
+        <!-- Show all rows -->
+        <button type="button" id="rowsShowAll"
+                class="w-full rounded-lg border px-3 py-2 text-sm hover:bg-stone-50">
+          Show all rows
+        </button>
 
-      <div class="border-t"></div>
+        <div class="border-t"></div>
 
-      <!-- Ceremony -->
-      <div class="text-xs text-stone-500">Ceremony</div>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="radio" name="ceremony" value="" checked> Any
-      </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="radio" name="ceremony" value="attend"> Attending
-      </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="radio" name="ceremony" value="not"> Not attending
-      </label>
-
-      <!-- Reception -->
-      <div class="text-xs text-stone-500">Reception</div>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="radio" name="reception" value="" checked> Any
-      </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="radio" name="reception" value="attend"> Attending
-      </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="radio" name="reception" value="not"> Not attending
-      </label>
-
-      <!-- Bottom row: match Columns layout -->
-      <div class="pt-2 border-t mt-2">
-        <!-- Highlight on its own line -->
-        <label class="flex items-center gap-2 text-sm mb-2">
-          <input type="checkbox" id="hlDupes"> Highlight duplicates
+        <!-- Duplicates / Matches -->
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" data-dupe="name"> Same name
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" data-dupe="place"> Same place-card name
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" data-dupe="cross"> Name ↔ Place Card (across rows)
         </label>
 
-        <!-- Separator line -->
-        <div class="border-t my-2"></div>
+        <div class="border-t"></div>
 
-        <!-- Next line: Select all (left) / Select none (right) -->
-        <div class="flex justify-between">
-          <button type="button" id="rowAll"  class="text-xs underline">Select all</button>
-          <button type="button" id="rowNone" class="text-xs underline">Select none</button>
+        <!-- Ceremony -->
+        <div class="text-xs text-stone-500">Ceremony</div>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="radio" name="ceremony" value="" checked> Any
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="radio" name="ceremony" value="attend"> Attending
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="radio" name="ceremony" value="not"> Not attending
+        </label>
+
+        <!-- Reception -->
+        <div class="text-xs text-stone-500">Reception</div>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="radio" name="reception" value="" checked> Any
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="radio" name="reception" value="attend"> Attending
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input type="radio" name="reception" value="not"> Not attending
+        </label>
+
+        <!-- Bottom row: match Columns layout -->
+        <div class="pt-2 border-t mt-2">
+          <!-- Highlight on its own line -->
+          <label class="flex items-center gap-2 text-sm mb-2">
+            <input type="checkbox" id="hlDupes"> Highlight duplicates
+          </label>
+
+          <!-- Separator line -->
+          <div class="border-t my-2"></div>
+
+          <!-- Next line: Select all (left) / Select none (right) -->
+          <div class="flex justify-between">
+            <button type="button" id="rowAll"  class="text-xs underline">Select all</button>
+            <button type="button" id="rowNone" class="text-xs underline">Select none</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column selector -->
+    <div class="relative">
+      <button id="colBtn" type="button"
+              class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
+        Columns
+      </button>
+      <div id="colMenu"
+           class="hidden absolute left-0 mt-2 w-56 bg-white border rounded-xl shadow-lg p-3 space-y-2 z-50">
+        <p class="text-xs text-stone-500">Show/Hide columns</p>
+
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="name" checked> Name</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="place" checked> Place Card Name</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="ceremony" checked> Ceremony</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="reception" checked> Reception</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="dietary" checked> Dietary</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="transport" checked> Transport</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="printed" checked> Printed</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="notes" checked> Notes</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="when" checked> When</label>
+
+        <div class="flex justify-between pt-2 border-t mt-2">
+          <button type="button" id="colAll" class="text-xs underline">Select all</button>
+          <button type="button" id="colNone" class="text-xs underline">Select none</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Column selector -->
-  <div class="relative">
-    <button id="colBtn" type="button"
-            class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
-      Columns
-    </button>
-    <div id="colMenu"
-         class="hidden absolute left-0 mt-2 w-56 bg-white border rounded-xl shadow-lg p-3 space-y-2 z-50">
-      <p class="text-xs text-stone-500">Show/Hide columns</p>
-
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="name" checked> Name</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="place" checked> Place Card Name</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="ceremony" checked> Ceremony</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="reception" checked> Reception</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="dietary" checked> Dietary</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="transport" checked> Transport</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="driving" checked> Driving</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="printed" checked> Printed</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="notes" checked> Notes</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-colchk="when" checked> When</label>
-
-      <div class="flex justify-between pt-2 border-t mt-2">
-        <button type="button" id="colAll" class="text-xs underline">Select all</button>
-        <button type="button" id="colNone" class="text-xs underline">Select none</button>
-      </div>
-    </div>
-  </div>
+  <!-- Active filters display area -->
+  <div id="activeFilters" class="flex items-center gap-2 mt-3 text-xs"></div>
 </div>
 
 <div class="overflow-x-auto">
-  <!-- V.3 - Final Delete Fix -->
-  <table class="w-full text-sm bg-white rounded-xl shadow-sm overflow-hidden">
+  <table class="w-full text-sm bg-white rounded-xl shadow-sm overflow-hidden" id="dashboardTable">
     <thead class="bg-stone-100">
       <tr>
         <th class="text-left p-3" data-col="name">Name</th>
@@ -147,7 +161,6 @@
         <th class="text-left p-3" data-col="reception">Reception</th>
         <th class="text-left p-3" data-col="dietary">Dietary</th>
         <th class="text-left p-3" data-col="transport">Transport</th>
-        <th class="text-left p-3" data-col="driving">Driving</th>
         <th class="text-left p-3" data-col="printed">Printed</th>
         <th class="text-left p-3" data-col="notes">Notes</th>
         <th class="text-left p-3" data-col="when">When</th>
@@ -180,22 +193,18 @@
           <td class="p-3" data-col="reception"><%= row.reception === true ? 'Yes' : (row.reception === false ? 'No' : '—') %></td>
           <td class="p-3" data-col="dietary"><%= row.dietary || '' %></td>
           <td class="p-3" data-col="transport"><%= row.transport === true ? 'Yes' : (row.transport === false ? 'No' : '—') %></td>
-          <td class="p-3" data-col="driving"><%= row.driving === true ? 'Yes' : (row.driving === false ? 'No' : '—') %></td>
           <td class="p-3" data-col="printed"><%= row.printedInvite === true ? 'Yes' : (row.printedInvite === false ? 'No' : '—') %></td>
           <td class="p-3 whitespace-pre-wrap break-words" data-col="notes"><%= row.notes || '' %></td>
           <td class="p-3 whitespace-nowrap" data-col="when"><%= new Date(row.when).toLocaleString() %></td>
-          <!-- CORRECTED DELETE FORMS -->
           <td class="p-3 whitespace-nowrap">
             <% if (row.kind === 'RSVP') { %>
               <button type="button" class="text-xs underline edit-btn">Edit</button>
-              <!-- This form correctly points to the /admin/rsvps/:id/delete route -->
               <form method="POST" action="/admin/rsvps/<%= row.id %>/delete" class="inline-block ml-2" onsubmit="return confirm('Are you sure you want to delete this guest and all their +1s?');">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button type="submit" class="text-xs underline text-red-600">Delete</button>
               </form>
             <% } else { %>
               <span class="text-xs text-stone-400">—</span>
-              <!-- This form correctly points to the /admin/guests/:id/delete route -->
               <form method="POST" action="/admin/guests/<%= row.id %>/delete" class="inline-block ml-2" onsubmit="return confirm('Are you sure you want to delete this +1 guest?');">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button type="submit" class="text-xs underline text-red-600">Delete</button>
@@ -396,5 +405,154 @@
         errEl.classList.remove('hidden');
       }
     });
+  })();
+
+  // ----- Dashboard Interactivity (v5 - Active Filter Display) -----
+  (function() {
+    const table = document.getElementById('dashboardTable');
+    if (!table) return;
+
+    const activeFiltersContainer = document.getElementById('activeFilters');
+
+    // --- Menu Dropdown Logic ---
+    const setupMenu = (btnId, menuId) => {
+      const btn = document.getElementById(btnId);
+      const menu = document.getElementById(menuId);
+      if (!btn || !menu) return;
+
+      menu.addEventListener('click', e => e.stopPropagation());
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const otherMenuId = menuId === 'rowMenu' ? 'colMenu' : 'rowMenu';
+        document.getElementById(otherMenuId).classList.add('hidden');
+        menu.classList.toggle('hidden');
+      });
+    };
+    setupMenu('rowBtn', 'rowMenu');
+    setupMenu('colBtn', 'colMenu');
+    document.addEventListener('click', () => {
+      document.getElementById('rowMenu').classList.add('hidden');
+      document.getElementById('colMenu').classList.add('hidden');
+    });
+
+    // --- Update Active Filters Display ---
+    const updateActiveFiltersDisplay = () => {
+      const filters = [];
+      const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
+      if (ceremonyFilter) filters.push(`Ceremony: ${ceremonyFilter === 'attend' ? 'Attending' : 'Not Attending'}`);
+
+      const receptionFilter = rowMenu.querySelector('[name="reception"]:checked').value;
+      if (receptionFilter) filters.push(`Reception: ${receptionFilter === 'attend' ? 'Attending' : 'Not Attending'}`);
+
+      dupeCheckboxes.forEach(chk => {
+        if (chk.checked) {
+          const label = chk.closest('label').textContent.trim();
+          filters.push(label);
+        }
+      });
+
+      const hiddenCols = [...colCheckboxes].filter(chk => !chk.checked).length;
+      if (hiddenCols > 0) filters.push(`${hiddenCols} hidden column${hiddenCols > 1 ? 's' : ''}`);
+
+      if (hlDupes.checked) filters.push('Highlighting duplicates');
+
+      if (filters.length > 0) {
+        activeFiltersContainer.innerHTML = '<strong>Active:</strong> ' + filters.map(f => `<span class="bg-stone-200 px-2 py-1 rounded-md">${f}</span>`).join('');
+        activeFiltersContainer.classList.remove('hidden');
+      } else {
+        activeFiltersContainer.innerHTML = '';
+        activeFiltersContainer.classList.add('hidden');
+      }
+    };
+
+    // --- Column Filtering ---
+    const colMenu = document.getElementById('colMenu');
+    const colCheckboxes = colMenu.querySelectorAll('[data-colchk]');
+    const updateColumns = () => {
+      colCheckboxes.forEach(chk => {
+        const colName = chk.dataset.colchk;
+        table.querySelectorAll(`[data-col="${colName}"]`).forEach(cell => {
+          cell.style.display = chk.checked ? '' : 'none';
+        });
+      });
+      updateActiveFiltersDisplay();
+    };
+    colCheckboxes.forEach(chk => chk.addEventListener('change', updateColumns));
+    colMenu.querySelector('#colAll').addEventListener('click', () => {
+      colCheckboxes.forEach(chk => chk.checked = true);
+      updateColumns();
+    });
+    colMenu.querySelector('#colNone').addEventListener('click', () => {
+      colCheckboxes.forEach(chk => chk.checked = false);
+      updateColumns();
+    });
+
+    // --- Row Filtering ---
+    const rowMenu = document.getElementById('rowMenu');
+    const tableRows = table.querySelectorAll('tbody tr');
+    const dupeCheckboxes = rowMenu.querySelectorAll('[data-dupe]');
+
+    const applyRowFilters = () => {
+      const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
+      const receptionFilter = rowMenu.querySelector('[name="reception"]:checked').value;
+      const activeDupeFilters = [...dupeCheckboxes]
+        .filter(chk => chk.checked)
+        .map(chk => chk.dataset.dupe);
+
+      tableRows.forEach(row => {
+        const ceremonyMatch = (ceremonyFilter === '') ||
+                              (ceremonyFilter === 'attend' && row.dataset.cer === 'yes') ||
+                              (ceremonyFilter === 'not' && row.dataset.cer === 'no');
+        
+        const receptionMatch = (receptionFilter === '') ||
+                               (receptionFilter === 'attend' && row.dataset.rec === 'yes') ||
+                               (receptionFilter === 'not' && row.dataset.rec === 'no');
+
+        const dupeMatch = activeDupeFilters.length === 0 || activeDupeFilters.every(filter => {
+          const dupes = row.dataset.dupes || '';
+          if (filter === 'name') return dupes.includes('dupe_name');
+          if (filter === 'place') return dupes.includes('dupe_place');
+          if (filter === 'cross') return dupes.includes('name_in_place') || dupes.includes('place_in_name');
+          return false;
+        });
+
+        const isVisible = ceremonyMatch && receptionMatch && dupeMatch;
+        row.style.display = isVisible ? '' : 'none';
+      });
+      updateActiveFiltersDisplay();
+    };
+
+    rowMenu.addEventListener('change', applyRowFilters);
+
+    document.getElementById('rowsShowAll').addEventListener('click', () => {
+      rowMenu.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+      rowMenu.querySelector('input[name="ceremony"][value=""]').checked = true;
+      rowMenu.querySelector('input[name="reception"][value=""]').checked = true;
+      applyRowFilters();
+    });
+
+    document.getElementById('rowAll').addEventListener('click', () => {
+      dupeCheckboxes.forEach(c => c.checked = true);
+      applyRowFilters();
+    });
+
+    document.getElementById('rowNone').addEventListener('click', () => {
+      dupeCheckboxes.forEach(c => c.checked = false);
+      applyRowFilters();
+    });
+    
+    // --- Highlighting ---
+    const hlDupes = document.getElementById('hlDupes');
+    hlDupes.addEventListener('change', () => {
+      table.classList.toggle('highlight-dupes', hlDupes.checked);
+      updateActiveFiltersDisplay();
+    });
+    if (hlDupes.checked) {
+      table.classList.add('highlight-dupes');
+    }
+
+    // --- Initial State ---
+    updateColumns();
+    applyRowFilters();
   })();
 </script>

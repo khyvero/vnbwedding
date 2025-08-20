@@ -1,5 +1,5 @@
 <% layout('layout') -%>
-<% const anyConcierge = (transport === true) || (driving === true) || (printedInvite === true); %>
+<% const anyConcierge = (transport === true) || (printedInvite === true); %>
 
 <!-- Modal overlay -->
 <div id="popup" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
@@ -26,7 +26,7 @@
       <% } else if (!ceremony && reception) { %>
         <p>Dear <strong><%= name %></strong>,</p>
         <p>Thank you for your RSVP! We’re delighted you’ll be with us for the reception.</p>
-        <% if ((driving === true) || (printedInvite === true)) { %>
+        <% if (printedInvite === true) { %>
           <p>If you’ve requested a printed invitation, we’ll be in touch. You can update your RSVP if you’d like to attend the ceremony — please do so before the deadline.</p>
         <% } else { %>
           <p>You can update your RSVP if you’d like to attend the ceremony — please do so before the deadline.</p>

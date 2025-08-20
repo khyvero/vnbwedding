@@ -1,97 +1,18 @@
-<% layout('layout', { fullWidth: true, pageTitle: 'Bridesmaids' }) -%>
+<!-- V2: Removed page, viewer, csrfToken from layout call -->
+<% layout('layout', { pageTitle: 'Bridesmaids' }) -%>
 
-<header class="bg-stone-900 text-white sticky top-0 z-50">
-  <div class="max-w-6xl mx-auto px-4 py-4 grid items-center grid-cols-[1fr_auto_1fr]">
-    <!-- Left: nav -->
-    <nav class="justify-self-start flex items-center gap-6 text-sm">
-      <a href="/#timeline" class="hover:opacity-80">Timeline</a>
-      <a href="/#story" class="hover:opacity-80">Our Story</a>
-      <a href="/travel" class="hover:opacity-80">Travel &amp; Stay</a>
-      <a href="/#registry" class="hover:opacity-80">Registry</a>
-    </nav>
+<div class="max-w-4xl mx-auto px-4 pt-40 pb-12">
+  <h1 class="serif text-4xl font-bold text-center mb-8">Bridesmaids</h1>
 
-    <!-- Center: logo -->
-    <a href="/" class="justify-self-center inline-flex items-center" aria-label="Home — Veronica & Bishoy">
-      <img src="/visual_assets/public/logo_white_100x100.svg"
-           alt="Veronica & Bishoy — wedding logo"
-           class="h-24 w-auto select-none"
-           draggable="false" />
-    </a>
-
-    <!-- Right: actions -->
-    <div class="justify-self-end flex items-center gap-6 text-sm">
-      <a href="/#faqs" class="hover:opacity-80">FAQs</a>
-      <a href="/contact" class="hover:opacity-80">Contact</a>
-      <% if (viewer) { %>
-        <a href="/gallery" class="font-semibold text-white underline">Gallery</a>
-      <% } %>
-
-      <div class="w-px h-5 bg-white/30" aria-hidden="true"></div>
-
-      <% if (viewer) { %>
-        <!-- Already logged in → show Logout -->
-        <form id="logoutForm" method="post" action="/access/logout" class="hidden">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        </form>
-        <button
-          id="logoutBtn"
-          type="button"
-          class="rounded-full border border-white/70 text-white text-sm px-3 py-2 bg-white/10 backdrop-blur-sm hover:bg-white/20"
-          aria-label="Logout">
-          Logout
-        </button>
-      <% } else { %>
-        <!-- Not logged in yet → show Login -->
-        <button
-          id="accessBtn"
-          type="button"
-          class="rounded-full border border-white/70 text-white text-sm px-3 py-2 bg-white/10 backdrop-blur-sm hover:bg-white/20"
-          aria-label="Enter access code to login">
-          Login
-        </button>
-      <% } %>
-    </div>
+  <div class="space-y-8 text-lg text-stone-700 leading-relaxed">
+    <p>
+      [Content for bridesmaids]
+    </p>
   </div>
-</header>
 
-<div class="max-w-6xl mx-auto px-4 py-24">
-  <h1 class="serif text-4xl mb-4">Photo Gallery</h1>
-
-  <% if (viewer) { %>
-    <div class="space-y-12">
-      <section>
-        <h2 class="serif text-3xl mb-4">Guest Photos</h2>
-        <div class="bg-stone-100 border rounded-lg p-8 text-center">
-          <p class="text-stone-600">The ability for guests to upload photos will be enabled after the wedding day.</p>
-          <p class="text-stone-500 text-sm mt-2">Please check back here after October 3rd, 2025!</p>
-          <button type="button" disabled class="mt-4 px-4 py-2 rounded-lg bg-stone-300 text-stone-500 cursor-not-allowed">
-            Upload Your Photos
-          </button>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="serif text-3xl mb-4">Photos From Us</h2>
-        <div class="bg-stone-100 border rounded-lg p-8 text-center">
-          <p class="text-stone-600">We will be sharing our official wedding photos and group pictures here for you to download.</p>
-          <p class="text-stone-500 text-sm mt-2">This gallery will become available a few weeks after the wedding.</p>
-          <button type="button" disabled class="mt-4 px-4 py-2 rounded-lg bg-stone-300 text-stone-500 cursor-not-allowed">
-            View & Download Photos
-          </button>
-        </div>
-      </section>
-    </div>
-  <% } else { %>
-    <div class="bg-stone-100 border rounded-lg p-8 text-center">
-      <p class="text-stone-600">This gallery is only available to our guests.</p>
-      <p class="text-stone-500 text-sm mt-2">Please enter the access code from your invitation to view the photos.</p>
-      <button
-        id="accessBtn"
-        type="button"
-        class="mt-4 px-4 py-2 rounded-lg bg-stone-800 text-white hover:bg-stone-700"
-        aria-label="Enter access code to login">
-        Enter Access Code
-      </button>
-    </div>
-  <% } %>
+  <div class="text-center mt-12">
+    <a href="/" class="inline-block bg-stone-900 text-white px-6 py-3 rounded-full hover:bg-stone-800 transition-colors">
+      Back to Home
+    </a>
+  </div>
 </div>

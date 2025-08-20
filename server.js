@@ -65,6 +65,7 @@ async function getViewer(req) {
     where: { id: Number(idStr) },
     select: {
       accessName: true,
+      group: true,
       rsvp:  { select: { placeCardName: true } },
       guest: { select: { placeCardName: true } }
     }
@@ -72,7 +73,7 @@ async function getViewer(req) {
   if (!inv) return null;
 
   const name = inv.accessName || inv.rsvp?.placeCardName || inv.guest?.placeCardName || null;
-  return { name };
+  return { name, group: normalizeInviteGroup(inv.group) };
 }
 
 function requireAccess(req, res, next) {
@@ -118,6 +119,53 @@ app.get('/gallery', requireAccess, csrfProtection, async (req, res, next) => {
   try {
     const viewer = await getViewer(req);
     res.render('gallery', { viewer, csrfToken: req.csrfToken() });
+  } catch (err) { next(err); }
+});
+
+// ---------- Bridesmaids/Groomsmen (gated) ----------
+function requireRole(role) {
+  return async (req, res, next) => {
+    try {
+      const token = req.signedCookies?.acc; // "INV:<id>"
+      if (!token) {
+        const nextUrl = encodeURIComponent(req.originalUrl);
+        return res.redirect(`/access?next=${nextUrl}`);
+      }
+      const [prefix, idStr] = token.split(':');
+      if (prefix !== 'INV' || !idStr) {
+        res.clearCookie('acc');
+        const nextUrl = encodeURIComponent(req.originalUrl);
+        return res.redirect(`/access?next=${nextUrl}`);
+      }
+      const inviteId = parseInt(idStr, 10);
+      const invite = await prisma.invite.findUnique({
+        where: { id: inviteId },
+        select: { group: true }
+      });
+
+      if (invite && normalizeInviteGroup(invite.group) === role) {
+        req.access = { inviteId };
+        return next();
+      }
+
+      return res.status(403).send('Access Denied');
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
+app.get('/bridesmaids', requireRole('bridesmaids'), csrfProtection, async (req, res, next) => {
+  try {
+    const viewer = await getViewer(req);
+    res.render('bridesmaids', { viewer, csrfToken: req.csrfToken() });
+  } catch (err) { next(err); }
+});
+
+app.get('/groomsmen', requireRole('groomsmen'), csrfProtection, async (req, res, next) => {
+  try {
+    const viewer = await getViewer(req);
+    res.render('groomsmen', { viewer, csrfToken: req.csrfToken() });
   } catch (err) { next(err); }
 });
 
@@ -198,7 +246,6 @@ app.get('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
             ceremony: true,
             reception: true,
             transport: true,
-            driving: true,
             printedInvite: true,
             notes: true,
             guests: { select: { placeCardName: true, dietary: true }, orderBy: { createdAt: 'asc' } }
@@ -215,7 +262,6 @@ app.get('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
       ceremony:      r.ceremony === true ? 'yes' : (r.ceremony === false ? 'no' : ''),
       reception:     r.reception === true ? 'yes' : (r.reception === false ? 'no' : ''),
       transport:     r.transport === true ? 'yes' : (r.transport === false ? 'no' : ''),
-      driving:       r.driving === true ? 'yes' : (r.driving === false ? 'no' : ''),
       printedInvite: r.printedInvite === true ? 'yes' : (r.printedInvite === false ? 'no' : ''),
       notes:         r.notes || '',
       guests:        (r.guests || []).map(g => ({ name: g.placeCardName || '', dietary: g.dietary || '' }))
@@ -229,7 +275,7 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
   try {
     const {
       placeCardName, email, dietary, ceremony, reception,
-      transport, driving, printedInvite, notes, guestNames, guestDietaries
+      transport, printedInvite, notes, guestNames, guestDietaries
     } = req.body;
 
     const invite = await prisma.invite.findUnique({
@@ -280,7 +326,6 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
           ceremony:      isAttendingCeremony,
           reception:     isAttendingReception,
           transport:     (isAttendingCeremony && isAttendingReception) ? yn(transport) : null,
-          driving:       isAttendingAnything ? yn(driving) : null,
           printedInvite: isAttendingAnything ? yn(printedInvite) : null,
           notes:         isAttendingAnything ? (notes?.trim() || null) : null,
           guests:        { deleteMany: {}, create: cleanedGuests }
@@ -288,13 +333,16 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
       });
     }
 
+    const viewer = await getViewer(req);
+
     res.render('success', {
       name: displayName,
       ceremony: isAttendingCeremony,
       reception: isAttendingReception,
       transport: (isAttendingCeremony && isAttendingReception) ? yn(transport) : null,
-      driving: isAttendingAnything ? yn(driving) : null,
       printedInvite: isAttendingAnything ? yn(printedInvite) : null,
+      viewer,
+      csrfToken: req.csrfToken(),
     });
 
   } catch (err) {
@@ -365,7 +413,6 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
         reception: r.reception,
         dietary: r.dietary,
         transport: r.transport,
-        driving: r.driving,
         printedInvite: r.printedInvite,
         notes: r.notes,
         when: r.createdAt,
@@ -384,7 +431,6 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
           reception: r.reception,
           dietary: g.dietary,
           transport: r.transport,
-          driving: r.driving,
           printedInvite: r.printedInvite,
           notes: r.notes,
           when: g.createdAt || r.createdAt,

@@ -35,7 +35,6 @@ model RSVP {
   ceremony        Boolean?          // null = not answered yet
   reception       Boolean?          // null = not answered yet
   transport       Boolean?
-  driving         Boolean?
   printedInvite   Boolean?
   notes           String?
   createdAt       DateTime  @default(now())

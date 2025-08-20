@@ -8,7 +8,7 @@ Minimal, portable RSVP site you can deploy anywhere (shared hosting, Docker, or 
 
 This section serves as a memory bank, tracking all development progress.
 
-**Last Updated:** 2024-07-29
+**Last Updated:** 2024-07-31
 
 **✅ Completed Tasks:**
 
@@ -29,6 +29,8 @@ This section serves as a memory bank, tracking all development progress.
 3.  **Admin Dashboard Guest Management (CRUD):**
     *   **Add, Edit, Delete:** The admin dashboard is now fully functional, allowing for complete guest management.
     *   **Context-Aware Deletion:** The "Delete" functionality is now context-aware. Deleting a primary guest removes their entire party, while deleting a `+1` guest removes only that individual.
+    *   **Data Cleanup:** Removed the "Driving" option from the admin dashboard, as it is no longer a collected data point.
+    *   **Advanced Filtering & UI:** Fully repaired the admin dashboard’s filtering controls, including dropdowns and “Select All/None” buttons. Duplicate filters now use AND logic for more precise searches. A new display area shows all active filters, providing at-a-glance visibility into the applied criteria.
     *   **Bug Fixes:** Resolved multiple critical bugs, including an unresponsive "Add Guest" button and a recurring server crash caused by incorrect delete logic that conflicted with the database's cascading deletes.
 
 4.  **Admin Authentication:**
@@ -44,6 +46,20 @@ This section serves as a memory bank, tracking all development progress.
     *   Fixed a bug causing the RSVP button to be unresponsive.
     *   Implemented conditional logic to show the access modal if a user is not logged in.
     *   The `/access` route now correctly handles errors and redirects.
+
+7.  **Bridesmaids & Groomsmen Pages:**
+    *   **Role-Based Access:** Created dedicated pages for bridesmaids (`/bridesmaids`) and groomsmen (`/groomsmen`) with placeholder content.
+    *   **Secure Routes:** Implemented middleware to restrict access to these pages based on the logged-in guest's assigned group (`bridesmaids` or `groomsmen`).
+    *   **Conditional UI:** Added buttons to the homepage hero section that are only visible to the respective group members, providing a clear and exclusive entry point to their dedicated content.
+
+8.  **Bug Fixes & Stability:**
+    *   **Role-Based Access:** Fixed a bug where the conditional "Groomsmen Info" button wasn't appearing due to a data normalization issue (`groomsman` vs. `groomsmen`). The user's group is now correctly standardized, ensuring role-based access works as intended.
+    *   **RSVP Submission Flow:** Resolved two critical crashes that occurred after submitting the RSVP form by removing a reference to an obsolete `driving` variable in the `success.ejs` template and ensuring the `csrfToken` is correctly passed to all rendered pages.
+
+9.  **Footer & Contact Info:**
+    *   **Contact Details:** Updated the footer with the correct phone number (`+49 15204085370`) and wedding date (`03.10.2025`).
+    *   **WhatsApp Integration:** Added a WhatsApp icon and link next to the phone number for easy communication.
+    *   **Link Cleanup:** Reorganized the footer links into more logical groups ("Quick Links" and "Pages") for improved navigation.
 
 **⚠️ Next Steps:**
 

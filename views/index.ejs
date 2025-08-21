@@ -15,12 +15,12 @@
 
   <!-- Gradient overlays -->
   <div class="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-[#B9D6E6]/40 via-[#B9D6E6]/20 to-transparent"></div>
-  <div class="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/70 via-black/30 to-transparent"></div>
+  <div class="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/100 via-black/30 to-transparent"></div>
 
   <!-- Hero content -->
   <div class="relative z-20 flex h-full items-center justify-center pointer-events-none">
     <div class="text-center text-white px-6 transform -translate-y-24 md:-translate-y-18 pointer-events-auto">
-      <h1 class="serif text-5xl md:text-6xl font-semibold drop-shadow-sm">
+      <h1 class="text-5xl md:text-6xl font-semibold drop-shadow-sm">
         Veronica &amp; Bishoy
       </h1>
 
@@ -62,7 +62,7 @@
         <button
           id="rsvpBtn"
           type="button"
-          class="inline-flex items-center rounded-full bg-[#1E2A44] text-white px-6 py-3 shadow hover:bg-[#2a3b5a]"
+          class="inline-flex items-center rounded-full bg-[#1E2A44] text-white px-4 py-2 shadow hover:bg-[#6595BF]"
           onclick="<% if (viewer) { %>window.location.href='/rsvp'<% } else { %>window.showAccessModal('/rsvp')<% } %>"
         >
           RSVP
@@ -92,21 +92,16 @@
 </section>
 
 <!-- Content anchors -->
-<section id="timeline" class="max-w-6xl mx-auto px-4 py-24">
-  <h2 class="serif text-3xl mb-4">Timeline</h2>
-  <p class="text-stone-600">Coming soon…</p>
-</section>
-
-<section id="locations" class="bg-stone-50/60 border-y">
+<section id="locations" class="max-w-6xl mx-auto px-4 py-24">
   <div class="max-w-6xl mx-auto px-4 py-24">
-    <h2 class="serif text-3xl mb-12">Locations</h2>
+    <h2 class="text-3xl mb-12">Locations</h2>
     <div class="space-y-8">
       <!-- Location 1: Ceremony -->
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
         <div>
-          <h3 class="serif text-2xl mb-1">Ceremony</h3>
-          <p class="text-stone-800 font-semibold">Schloss Schönhausen</p>
-          <p class="text-stone-600">Tschaikowskistraße 1, 13156 Berlin</p>
+          <h3 class="text-2xl mb-1">Ceremony</h3>
+          <p class="font-semibold">Schloss Schönhausen</p>
+          <p class="opacity-80">Tschaikowskistraße 1, 13156 Berlin</p>
         </div>
         <a href="https://www.google.com/maps/dir/?api=1&destination=Schloss+Schönhausen,+Tschaikowskistraße+1,+13156+Berlin"
            target="_blank" rel="noopener noreferrer"
@@ -115,12 +110,12 @@
           Show me directions
         </a>
       </div>
-      <!-- Location 2: Party -->
+      <!-- Location 2: Reception -->
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
         <div>
-          <h3 class="serif text-2xl mb-1">Party</h3>
-          <p class="text-stone-800 font-semibold">Ermelerhaus</p>
-          <p class="text-stone-600">Märkisches Ufer 10, 10179 Berlin</p>
+          <h3 class="text-2xl mb-1">Reception</h3>
+          <p class="font-semibold">Ermelerhaus</p>
+          <p class="opacity-80">Märkisches Ufer 10, 10179 Berlin</p>
         </div>
         <a href="https://www.google.com/maps/dir/?api=1&destination=Ermelerhaus,+Märkisches+Ufer+10,+10179+Berlin"
            target="_blank" rel="noopener noreferrer"
@@ -133,15 +128,20 @@
   </div>
 </section>
 
+<section id="timeline" class="bg-stone-50/60 border-y py-24">
+  <h2 class="text-3xl mb-4">Timeline</h2>
+  <p class="text-[#1E2A44] opacity-80">Coming soon…</p>
+</section>
+
 <section id="registry" class="max-w-6xl mx-auto px-4 py-24">
-  <h2 class="serif text-3xl mb-4">Registry</h2>
-  <p class="text-stone-600">Coming soon…</p>
+  <h2 class="text-3xl mb-4">Registry</h2>
+  <p class="text-[#1E2A44] opacity-80">Coming soon…</p>
 </section>
 
 <section id="faqs" class="bg-stone-50/60 border-y py-24">
   <div class="max-w-6xl mx-auto px-4">
-    <h2 class="serif text-3xl mb-4">FAQs</h2>
-    <p class="text-stone-600">Coming soon…</p>
+    <h2 class="text-3xl mb-4">FAQs</h2>
+    <p class="text-[#1E2A44] opacity-80">Coming soon…</p>
   </div>
 </section>
 

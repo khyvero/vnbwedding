@@ -8,16 +8,23 @@ Minimal, portable RSVP site you can deploy anywhere (shared hosting, Docker, or 
 
 This section serves as a memory bank, tracking all development progress.
 
-**Last Updated:** 2024-07-31
+**Last Updated:** 2025-08-21
 
 **✅ Completed Tasks:**
 
-1.  **Homepage Content & Styling:**
+1.  **Global Design & Consistency Overhaul:**
+    *   **New Typography:** Updated the primary display font to "EB Garamond" for all headings (`.serif` class) to create a more elegant and classic feel. The body text remains "Inter" for optimal readability.
+    *   **New Color Scheme:** Standardized the site's primary color to a deep blue (`#1E2A44`). This color is now used for all dark text, buttons, and interactive elements, creating a cohesive and professional look.
+    *   **Site-Wide Audit:** Systematically reviewed and updated every page and component, including the homepage, RSVP form, contact page, access modals, and all role-specific pages (`bridesmaids`, `groomsmen`).
+    *   **Consistent Forms & Buttons:** All form inputs and buttons now share a unified design with consistent focus styles and have been updated to the new color scheme, improving usability and visual appeal. A full audit confirmed all buttons, including on admin pages, are now consistent.
+    *   **Styled Error Page:** Created a new, branded error page (`error.ejs`) to ensure that even server errors are handled gracefully and align with the site's design.
+
+2.  **Homepage Content & Styling:**
     *   **Locations Section:** Added a new "Locations" section to the homepage with details for the Ceremony and Party venues.
     *   **Layout Refinement:** The section's title is now correctly left-aligned, and the venues are presented in a clean, vertical list that matches the page's global style. Each location's details are on the left, with the directions button on the right.
     *   **Button Styling:** The "Show me directions" buttons have been styled to resemble Google Maps buttons, complete with a map pin icon, for a more intuitive user experience.
 
-2.  **Layout & Navigation:**
+3.  **Layout & Navigation:**
     *   **Updated Navigation:** The main navigation links have been updated to: "Timeline", "Locations", "Story", and "Registry".
     *   **"Contact" Link:** The "Contact" button now smoothly scrolls the user to the footer of the page instead of navigating to a separate page.
     *   **Architectural Refactor:** The main header and footer have been centralized into the primary `layout.ejs` file for consistency.
@@ -26,37 +33,37 @@ This section serves as a memory bank, tracking all development progress.
         *   Fixed a critical crash on the "Story" page caused by incorrect variables being passed to the layout.
         *   Resolved an issue where the site logo was broken on internal pages due to an incorrect file path.
 
-3.  **Admin Dashboard Guest Management (CRUD):**
+4.  **Admin Dashboard Guest Management (CRUD):**
     *   **Add, Edit, Delete:** The admin dashboard is now fully functional, allowing for complete guest management.
     *   **Context-Aware Deletion:** The "Delete" functionality is now context-aware. Deleting a primary guest removes their entire party, while deleting a `+1` guest removes only that individual.
     *   **Data Cleanup:** Removed the "Driving" option from the admin dashboard, as it is no longer a collected data point.
     *   **Advanced Filtering & UI:** Fully repaired the admin dashboard’s filtering controls, including dropdowns and “Select All/None” buttons. Duplicate filters now use AND logic for more precise searches. A new display area shows all active filters, providing at-a-glance visibility into the applied criteria.
     *   **Bug Fixes:** Resolved multiple critical bugs, including an unresponsive "Add Guest" button and a recurring server crash caused by incorrect delete logic that conflicted with the database's cascading deletes.
 
-4.  **Admin Authentication:**
+5.  **Admin Authentication:**
     *   Secured the `/admin` routes using a password stored in the `ADMIN_PASSWORD` environment variable.
     *   Created a login page (`/admin/login`) and a logout route.
     *   Access is managed via a signed, HTTP-only cookie.
 
-5.  **Theming and Styling:**
+6.  **Theming and Styling:**
     *   Changed the primary accent color for key elements to a deep blue (`#1E2A44`).
     *   Updated the footer background, RSVP button, and the sticky header's scroll background.
 
-6.  **RSVP & Access Flow:**
+7.  **RSVP & Access Flow:**
     *   Fixed a bug causing the RSVP button to be unresponsive.
     *   Implemented conditional logic to show the access modal if a user is not logged in.
     *   The `/access` route now correctly handles errors and redirects.
 
-7.  **Bridesmaids & Groomsmen Pages:**
+8.  **Bridesmaids & Groomsmen Pages:**
     *   **Role-Based Access:** Created dedicated pages for bridesmaids (`/bridesmaids`) and groomsmen (`/groomsmen`) with placeholder content.
     *   **Secure Routes:** Implemented middleware to restrict access to these pages based on the logged-in guest's assigned group (`bridesmaids` or `groomsmen`).
     *   **Conditional UI:** Added buttons to the homepage hero section that are only visible to the respective group members, providing a clear and exclusive entry point to their dedicated content.
 
-8.  **Bug Fixes & Stability:**
+9.  **Bug Fixes & Stability:**
     *   **Role-Based Access:** Fixed a bug where the conditional "Groomsmen Info" button wasn't appearing due to a data normalization issue (`groomsman` vs. `groomsmen`). The user's group is now correctly standardized, ensuring role-based access works as intended.
     *   **RSVP Submission Flow:** Resolved two critical crashes that occurred after submitting the RSVP form by removing a reference to an obsolete `driving` variable in the `success.ejs` template and ensuring the `csrfToken` is correctly passed to all rendered pages.
 
-9.  **Footer & Contact Info:**
+10. **Footer & Contact Info:**
     *   **Contact Details:** Updated the footer with the correct phone number (`+49 15204085370`) and wedding date (`03.10.2025`).
     *   **WhatsApp Integration:** Added a WhatsApp icon and link next to the phone number for easy communication.
     *   **Link Cleanup:** Reorganized the footer links into more logical groups ("Quick Links" and "Pages") for improved navigation.

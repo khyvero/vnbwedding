@@ -13,35 +13,42 @@
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    html, body { height: 100%; scroll-behavior: smooth; }
-    body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    .serif { font-family: 'Playfair Display', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif; }
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 8rem; /* Offset for the sticky header (h-32) */
+    }
+    body { 
+      height: 100%;
+      font-family: 'EB Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif; 
+      -webkit-font-smoothing: antialiased; 
+      -moz-osx-font-smoothing: grayscale; 
+    }
   </style>
 
   <%- block('head') %>
 </head>
-<body class="bg-white text-stone-900 selection:bg-stone-900 selection:text-white">
+<body class="bg-white text-[#1E2A44] selection:bg-[#1E2A44] selection:text-white">
 
   <% if (typeof isAdmin === 'undefined' || !isAdmin) { %>
     <%- include('partials/main-header', { page: (typeof page !== 'undefined' ? page : 'internal'), viewer, csrfToken }) %>
   <% } %>
 
-  <% const _fullWidth = (typeof fullWidth !== 'undefined') ? fullWidth : false; %>
+  <% const _fullWidth = (typeof fullWidth !== 'undefined' ? fullWidth : false); %>
   <main class="<%= _fullWidth ? '' : 'max-w-6xl mx-auto px-4' %>">
     <%- body %>
   </main>
 
   <% if (typeof isAdmin === 'undefined' || !isAdmin) { %>
-    <footer id="contact-footer" class="bg-[#1E2A44] border-t border-stone-800 text-stone-300 py-12 mt-16">
+    <footer id="contact-footer" class="bg-[#1E2A44] border-t border-stone-800 text-stone-300 pt-12 mt-16">
       <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
 
         <!-- Left Column -->
         <div class="flex flex-col items-center text-center w-full md:w-1/3">
-          <img src="/visual_assets/public/logo_white_100x100.svg" alt="Veronica & Bishoy Logo" class="h-24 w-24 mb-4">
-          <p class="serif text-xl font-semibold text-stone-100 mb-2">Veronica & Bishoy</p>
+          <img src="/visual_assets/public/logo_gold_100x100.svg" alt="Veronica & Bishoy Logo" class="h-24 w-24 mb-4">
+          <p class="text-xl font-semibold text-stone-100 mb-2">Veronica & Bishoy</p>
           <p class="text-sm mb-2">03.10.2025 | BERLIN</p>
           <a href="mailto:bishoy.veronica@gmail.com" class="text-sm hover:underline mb-1">bishoy.veronica@gmail.com</a>
           <div class="flex items-center gap-2 mt-1">
@@ -59,6 +66,7 @@
           <p class="font-semibold text-stone-100 mb-4">Quick Links</p>
           <ul class="space-y-2">
             <li><a href="/rsvp" class="hover:underline">RSVP</a></li>
+            <li><a href="/#location" class="hover:underline">Locations</a></li>
             <li><a href="/#timeline" class="hover:underline">Timeline</a></li>
             <li><a href="/#faqs" class="hover:underline">FAQs</a></li>
           </ul>
@@ -76,7 +84,7 @@
       </div>
 
       <!-- Copyright -->
-      <div class="text-center mt-12 border-t border-stone-800 pt-8">
+      <div class="text-center mt-12 border-t border-stone-800 pt-8 pb-6">
         <p class="text-sm text-stone-400">&copy; 2024 Veronica & Bishoy. All Rights Reserved.</p>
       </div>
     </footer>

@@ -6,10 +6,10 @@
     isHome ? 'text-white' : 'text-stone-900 bg-white shadow-sm'
   ].join(' ');
 
-  const logoSrc = isHome ? '/visual_assets/public/logo_white_100x100.svg' : '/visual_assets/public/logo_gold_100x100.svg';
+  const logoSrc = isHome ? '/visual_assets/public/logo_gold_100x100.svg' : '/visual_assets/public/logo_gold_100x100.svg';
 
-  const timelineLink = isHome ? '#timeline' : '/#timeline';
   const locationsLink = isHome ? '#locations' : '/#locations';
+  const timelineLink = isHome ? '#timeline' : '/#timeline';
   const registryLink = isHome ? '#registry' : '/#registry';
   const faqsLink = isHome ? '#faqs' : '/#faqs';
 %>
@@ -21,8 +21,8 @@
       <!-- Left: Desktop Nav -->
       <div class="hidden md:flex justify-self-start">
         <nav class="flex items-center space-x-6 text-sm">
-          <a href="<%= timelineLink %>" class="hover:opacity-80">Timeline</a>
           <a href="<%= locationsLink %>" class="hover:opacity-80">Locations</a>
+          <a href="<%= timelineLink %>" class="hover:opacity-80">Timeline</a>
           <a href="/story" class="hover:opacity-80">Story</a>
           <a href="<%= registryLink %>" class="hover:opacity-80">Registry</a>
         </nav>
@@ -39,11 +39,11 @@
       <div class="justify-self-end">
         <!-- Desktop -->
         <div class="hidden md:flex items-center gap-6 text-sm">
-          <a href="<%= faqsLink %>" class="hover:opacity-80">FAQs</a>
-          <a href="#contact-footer" class="hover:opacity-80">Contact</a>
           <% if (viewer) { %>
             <a href="/gallery" class="hover:opacity-80">Gallery</a>
           <% } %>
+          <a href="<%= faqsLink %>" class="hover:opacity-80">FAQs</a>
+          <a href="#contact-footer" class="hover:opacity-80">Contact</a>
           <div class="w-px h-5 <%= isHome ? 'bg-white/30' : 'bg-stone-900/20' %>" aria-hidden="true"></div>
           <% if (viewer) { %>
             <form id="logoutForm" method="post" action="/access/logout" class="hidden">
@@ -70,15 +70,15 @@
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="md:hidden hidden bg-[#1E2A44]/95 backdrop-blur-md">
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-      <a href="<%= timelineLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Timeline</a>
       <a href="<%= locationsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Locations</a>
+      <a href="<%= timelineLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Timeline</a>
       <a href="/story" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Story</a>
       <a href="<%= registryLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Registry</a>
-      <a href="<%= faqsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">FAQs</a>
-      <a href="#contact-footer" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Contact</a>
       <% if (viewer) { %>
         <a href="/gallery" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Gallery</a>
       <% } %>
+      <a href="<%= faqsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">FAQs</a>
+      <a href="#contact-footer" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Contact</a>
     </div>
     <div class="pt-4 pb-3 border-t border-white/20">
       <div class="flex items-center px-5">

@@ -18,7 +18,16 @@ const app = express();
 const prisma = new PrismaClient();
 
 // ---------- Security & parsing ----------
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "script-src": ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
+      },
+    },
+  })
+);
 app.disable('x-powered-by');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -79,14 +88,14 @@ async function getViewer(req) {
 function requireAccess(req, res, next) {
   const token = req.signedCookies?.acc; // "INV:<id>"
   if (!token) {
-    const nextUrl = encodeURIComponent(req.originalUrl || '/rsvp');
-    return res.redirect(`/access?next=${nextUrl}`);
+    const nextUrl = encodeURIComponent(req.originalUrl || '/');
+    return res.redirect(`/?showAccessModal=true&next=${nextUrl}`);
   }
   const [prefix, idStr] = token.split(':');
   if (prefix !== 'INV' || !idStr) {
     res.clearCookie('acc');
-    const nextUrl = encodeURIComponent(req.originalUrl || '/rsvp');
-    return res.redirect(`/access?next=${nextUrl}`);
+    const nextUrl = encodeURIComponent(req.originalUrl || '/');
+    return res.redirect(`/?showAccessModal=true&next=${nextUrl}`);
   }
   req.access = { inviteId: parseInt(idStr, 10) };
   next();
@@ -129,13 +138,13 @@ function requireRole(role) {
       const token = req.signedCookies?.acc; // "INV:<id>"
       if (!token) {
         const nextUrl = encodeURIComponent(req.originalUrl);
-        return res.redirect(`/access?next=${nextUrl}`);
+        return res.redirect(`/?showAccessModal=true&next=${nextUrl}`);
       }
       const [prefix, idStr] = token.split(':');
       if (prefix !== 'INV' || !idStr) {
         res.clearCookie('acc');
         const nextUrl = encodeURIComponent(req.originalUrl);
-        return res.redirect(`/access?next=${nextUrl}`);
+        return res.redirect(`/?showAccessModal=true&next=${nextUrl}`);
       }
       const inviteId = parseInt(idStr, 10);
       const invite = await prisma.invite.findUnique({
@@ -170,8 +179,13 @@ app.get('/groomsmen', requireRole('groomsmen'), csrfProtection, async (req, res,
 });
 
 // ---------- Access (Invite) ----------
-app.get('/access', csrfProtection, (req, res) => {
-  res.render('access', { next: req.query.next || '/', error: null, csrfToken: req.csrfToken() });
+app.get('/access', csrfProtection, async (req, res, next) => {
+  try {
+    const viewer = await getViewer(req);
+    res.render('access', { next: req.query.next || '/', error: null, csrfToken: req.csrfToken(), viewer });
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.use((req, res, next) => {
@@ -223,8 +237,8 @@ app.post('/access/logout', csrfProtection, (req, res) => {
     secure: process.env.NODE_ENV === 'production',
   });
 
-  // Redirect to home with a flag to show the modal
-  return res.redirect('/?showAccessModal=true');
+  // Always redirect to home
+  return res.redirect('/');
 });
 
 

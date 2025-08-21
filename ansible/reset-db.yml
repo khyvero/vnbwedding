@@ -1,0 +1,29 @@
+#---
+#- hosts: webservers
+#  become: yes
+#  vars:
+#    project_src: /etc/docker/compose/vnbwedding
+#    db_volume_name: vnbwedding_postgres_data
+#
+#  tasks:
+#    - name: 🛑 1. Stop and remove existing database container
+#      community.docker.docker_compose_v2:
+#        project_src: "{{ project_src }}"
+#        state: absent
+#
+#    - name: 🗑️ 2. Permanently delete the database Docker volume
+#      community.docker.docker_volume:
+#        name: "{{ db_volume_name }}"
+#        state: absent
+#      register: volume_deletion
+#      failed_when: false # Prevent failure if volume doesn't exist
+#
+#    - name: Display volume deletion status
+#      debug:
+#        msg: "Database volume '{{ db_volume_name }}' was deleted."
+#      when: volume_deletion.changed
+#
+#    - name: ✨ 3. Start a fresh database container
+#      community.docker.docker_compose_v2:
+#        project_src: "{{ project_src }}"
+#        state: present # This is the default, but explicit is clear

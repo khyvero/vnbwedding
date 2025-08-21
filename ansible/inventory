@@ -1,0 +1,3 @@
+[webservers]
+91.98.79.172 ansible_user=root ansible_ssh_private_key_file=/Users/I559513/SAPDevelop/vnbwedding/bshanna
+

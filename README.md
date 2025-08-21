@@ -1,10 +1,103 @@
-# Wedding Site Starter (Express + EJS + Prisma/SQLite)
+# Wedding RSVP & Guest Management Website
 
-Minimal, portable RSVP site you can deploy anywhere (shared hosting, Docker, or a small VM).
+A complete, self-hostable wedding website built with Express, EJS, and PostgreSQL. This project provides a beautiful public-facing site for guests and a secure admin dashboard for managing RSVPs, the guest list, and invites.
 
 ---
 
-### **Project Status & Progress Log**
+## Features
+
+- **Guest Experience:**
+  - Modern, responsive design.
+  - Public pages for Story, Travel, Gallery, etc.
+  - Secure, code-based access for invited guests, with a seamless modal-based login flow.
+  - Robust RSVP submission form.
+- **Admin Dashboard (`/admin`):**
+  - Secure password-protected access.
+  - Centralized dashboard to view all RSVPs and guests at a glance.
+  - Full CRUD (Create, Read, Update, Delete) functionality for the guest list and invites.
+  - Advanced filtering and search capabilities.
+  - **Download guest list as a formatted PDF.**
+- **Technology Stack:**
+  - **Backend:** Express.js
+  - **Frontend:** EJS (Embedded JavaScript templates) for simple server-side rendering.
+  - **Database:** PostgreSQL (for both development and production).
+  - **Local Development:** Docker Compose for a consistent, one-command setup.
+  - **Deployment:** Fully automated deployment using Ansible.
+
+---
+
+## Local Development Setup
+
+Get the project running on your local machine for development and testing.
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or newer)
+- [Docker](https://www.docker.com/products/docker-desktop/) and Docker Compose
+
+### 1. Configure Environment
+
+Create a new file named `.env` in the root of the project and add the following content. This file provides the connection string for your local database and sets the password for the admin dashboard.
+
+```
+# Local Database Connection
+DATABASE_URL="postgresql://vnbwedding_user:YOUR_DB_PASSWORD@localhost:5433/vnbwedding"
+
+# Local Admin Password
+ADMIN_PASSWORD=admin
+```
+
+- **Important:**
+  - Replace `YOUR_DB_PASSWORD` with a password of your choice.
+  - This same password must also be set in the `docker-compose.db.yml` file.
+  - You can change the `ADMIN_PASSWORD` to whatever you like for local testing.
+
+### 2. Start the Development Environment
+
+Run the development script from your terminal:
+
+```bash
+# Make the script executable (only needs to be done once)
+chmod +x start-dev.sh
+
+# Run the script
+./start-dev.sh
+```
+
+This script will:
+1.  Start the PostgreSQL database in a Docker container.
+2.  Apply all necessary database migrations.
+3.  Start the development server.
+
+### 3. Access the Application
+
+- **Website:** [http://localhost:3000](http://localhost:3000)
+- **Admin Login:** [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
+
+---
+
+## Deployment (Ansible)
+
+This project includes a complete Ansible playbook to deploy the application to a production Ubuntu/Debian server.
+
+**Key Features**:
+- **Nginx & HTTPS**: Installs Nginx as a reverse proxy and secures the site with a free Let's Encrypt SSL certificate.
+- **PostgreSQL Database**: Deploys a robust PostgreSQL database in a Docker container.
+- **Automated Setup**: The playbook handles everything from system dependencies to application configuration.
+- **Process Management**: Runs the application as a `systemd` service for reliability.
+
+**To Deploy**:
+1.  **Install Ansible**: Ensure Ansible is installed on your local machine.
+2.  **Configure Inventory**: Edit `ansible/inventory` and replace the placeholder IP and user with your server details.
+3.  **Create Vault**: Create an Ansible Vault file (`ansible/vault.yml`) to store your secrets.
+4.  **Run the Playbook**:
+    ```bash
+    ansible-playbook -i ansible/inventory ansible/playbook.yml --ask-vault-pass
+    ```
+
+---
+
+## Development Log
 
 This section serves as a memory bank, tracking all development progress.
 
@@ -61,54 +154,14 @@ This section serves as a memory bank, tracking all development progress.
     *   **WhatsApp Integration:** Added a WhatsApp icon and link next to the phone number for easy communication.
     *   **Link Cleanup:** Reorganized the footer links into more logical groups ("Quick Links" and "Pages") for improved navigation.
 
+10. **Automated Deployment & Local Development:**
+    *   **Ansible Playbook:** Created a comprehensive Ansible playbook to fully automate the deployment process.
+    *   **Dual Database Strategy:** The application is now configured to use PostgreSQL in production for robustness and SQLite in development for simplicity. The Ansible playbook automatically modifies the Prisma schema on the server during deployment.
+    *   **Local Development Script:** Added a `dev.sh` script to streamline the local development setup, automatically configuring the environment for SQLite and running the necessary migrations.
+    *   **Production Web Server & SSL:** The playbook now installs and configures Nginx as a reverse proxy and uses Certbot to automatically provision and renew a free Let's Encrypt SSL certificate, enabling HTTPS.
+
 **⚠️ Next Steps:**
 
 *   Unique invite links + QR codes.
 *   Email invites (SMTP) with ICS attachment.
 *   Theming (Tailwind via CDN or build pipeline).
-
----
-
-## Quickstart
-
-1. **Open in IntelliJ IDEA** (with Node.js plugin):
-   - *File → Open...* and select the project folder.
-   - Ensure **Node interpreter** is set (Settings → Languages & Frameworks → Node.js).
-
-2. **Install deps** (Terminal inside IDE):
-   ```bash
-   npm install
-   npx prisma generate
-   cp .env.example .env
-   ```
-
-3. **Create DB & run migration**:
-   ```bash
-   npm run prisma:migrate
-   npm run dev
-   ```
-
-4. Visit: http://localhost:3000
-
-## What’s in the box
-
-- **Express + EJS** server-rendered (no heavy front-end build).
-- **Prisma + SQLite** (file at `prisma/dev.db`).
-- Basic pages: Home, RSVP form, Admin dashboard.
-- Security basics: Helmet, rate-limit, CSRF, cookie parsing.
-- Ready for email, QR invites, ICS — stubs in `src/lib/`.
-
-## Docker (optional)
-
-```bash
-docker build -t wedding-site .
-docker run -p 3000:3000 --env-file .env -v $(pwd)/prisma:/app/prisma wedding-site
-```
-
-Or with Caddy reverse proxy:
-
-```bash
-docker compose up --build
-```
-
-Then browse http://localhost.

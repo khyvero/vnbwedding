@@ -58,7 +58,13 @@
         <div class="flex flex-col items-center md:items-start text-center md:text-left w-full md:w-1/3">
           <p class="font-semibold text-stone-100 mb-4">Quick Links</p>
           <ul class="space-y-2">
-            <li><a href="/rsvp" class="hover:underline">RSVP</a></li>
+            <li>
+              <button type="button" class="hover:underline rsvp-button"
+                      data-logged-in="<%= viewer ? 'true' : 'false' %>"
+                      data-target-url="/rsvp">
+                RSVP
+              </button>
+            </li>
             <li><a href="/#timeline" class="hover:underline">Timeline</a></li>
             <li><a href="/#faqs" class="hover:underline">FAQs</a></li>
           </ul>
@@ -85,11 +91,9 @@
   <%- include('partials/access-modal') %>
 
   <script>
-    // --- Global access modal wiring (defensive edition) ---
-    (function () {
+    document.addEventListener('DOMContentLoaded', () => {
       try {
-        const accessBtn = document.getElementById('accessBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
+        // --- Global access modal wiring ---
         const modal     = document.getElementById('accessModal');
         const closeBtn  = document.getElementById('closeAccess');
         const form      = document.getElementById('accessForm');
@@ -97,8 +101,8 @@
         const nextInp   = document.getElementById('accessNext');
         const errorEl   = document.getElementById('accessError');
 
-        function open(nextPath) {
-          if (!modal || !input || !nextInp || !errorEl) return; // Do nothing if elements are missing
+        function openModal(nextPath) {
+          if (!modal || !input || !nextInp || !errorEl) return;
           if (typeof nextPath === 'string') nextInp.value = nextPath;
           input.value = '';
           errorEl.classList.add('hidden');
@@ -107,18 +111,17 @@
           modal.classList.add('flex');
           setTimeout(() => input.focus(), 50);
         }
-        window.showAccessModal = open;
+        window.showAccessModal = openModal; // Make it globally available
 
-        function close() {
+        function closeModal() {
           if (!modal) return;
           modal.classList.add('hidden');
           modal.classList.remove('flex');
         }
 
-        accessBtn?.addEventListener('click', () => open('/'));
-        logoutBtn?.addEventListener('click', () => {
-          document.getElementById('logoutForm')?.submit();
-        });
+        closeBtn?.addEventListener('click', closeModal);
+        modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
         form?.addEventListener('submit', async (event) => {
           event.preventDefault();
@@ -148,17 +151,31 @@
           }
         });
 
-        closeBtn?.addEventListener('click', close);
-        modal?.addEventListener('click', (e) => { if (e.target === modal) close(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-
-        if (new URLSearchParams(window.location.search).has('showAccessModal')) {
-          open('/');
+        // --- Auto-open modal based on URL ---
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('showAccessModal')) {
+          const nextUrl = params.get('next') || '/';
+          openModal(nextUrl);
         }
+
+        // --- RSVP Button Logic ---
+        document.querySelectorAll('.rsvp-button').forEach(button => {
+          button.addEventListener('click', (event) => {
+            const isLoggedIn = event.currentTarget.dataset.loggedIn === 'true';
+            const targetUrl = event.currentTarget.dataset.targetUrl;
+
+            if (isLoggedIn) {
+              window.location.href = targetUrl;
+            } else {
+              window.showAccessModal(targetUrl);
+            }
+          });
+        });
+
       } catch (e) {
-        console.error('A critical error occurred in the global layout script. This might affect page functionality.', e);
+        console.error('A critical error occurred in the global layout script.', e);
       }
-    })();
+    });
   </script>
 
   <%- block('scripts') %>

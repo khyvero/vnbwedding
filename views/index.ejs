@@ -62,8 +62,9 @@
         <button
           id="rsvpBtn"
           type="button"
-          class="inline-flex items-center rounded-full bg-[#1E2A44] text-white px-6 py-3 shadow hover:bg-[#2a3b5a]"
-          onclick="<% if (viewer) { %>window.location.href='/rsvp'<% } else { %>window.showAccessModal('/rsvp')<% } %>"
+          class="rsvp-button inline-flex items-center rounded-full bg-[#1E2A44] text-white px-6 py-3 shadow hover:bg-[#2a3b5a]"
+          data-logged-in="<%= viewer ? 'true' : 'false' %>"
+          data-target-url="/rsvp"
         >
           RSVP
         </button>

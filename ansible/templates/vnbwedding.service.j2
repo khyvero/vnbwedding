@@ -1,0 +1,14 @@
+[Unit]
+Description=vnbwedding application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/vnbwedding
+ExecStart=/usr/bin/node server.js
+Restart=always
+EnvironmentFile=/var/www/vnbwedding/.env
+
+[Install]
+WantedBy=multi-user.target

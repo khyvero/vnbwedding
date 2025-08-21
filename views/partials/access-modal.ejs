@@ -5,7 +5,7 @@
     <h3 class="serif text-xl mb-4">Enter Access Code</h3>
     <form id="accessForm" method="post" action="/access" class="space-y-4">
       <input type="hidden" name="_csrf" value="<%= locals.csrfToken || '' %>">
-      <input type="hidden" name="next" id="accessNext" value="/">
+      <input type="hidden" name="next" id="accessNext" value="<%= locals.next || '/' %>">
       <div>
         <input
           name="code"

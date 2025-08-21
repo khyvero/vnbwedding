@@ -1,0 +1,219 @@
+---
+- hosts: webservers
+  become: yes
+  tasks:
+    # --- System & Docker Setup ---
+    - name: Install prerequisites for Docker
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: yes
+
+    - name: Create directory for Docker GPG key
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Docker's official GPG key
+      shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+
+    - name: Add Docker repository
+      shell: >
+        echo
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu
+        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - name: Update apt package cache for Docker
+      apt:
+        update_cache: yes
+
+    - name: Install Docker Engine and Compose
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    # --- Database Setup ---
+    - name: Create directory for database Docker Compose file
+      file:
+        path: /etc/docker/compose/vnbwedding
+        state: directory
+        mode: '0755'
+
+    - name: Create database Docker Compose file from template
+      template:
+        src: templates/docker-compose.db.yml.j2
+        dest: /etc/docker/compose/vnbwedding/docker-compose.yml
+
+    - name: Start database container
+      community.docker.docker_compose_v2:
+        project_src: /etc/docker/compose/vnbwedding
+
+    # --- Web Server & SSL Setup ---
+    - name: Install Nginx and Certbot
+      apt:
+        name:
+          - nginx
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+    - name: Create Nginx site configuration from template
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/vnbwedding
+      notify: Restart Nginx
+
+    - name: Enable the Nginx site
+      file:
+        src: /etc/nginx/sites-available/vnbwedding
+        dest: /etc/nginx/sites-enabled/vnbwedding
+        state: link
+      notify: Restart Nginx
+
+    - name: Remove default Nginx site if it exists
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart Nginx
+
+    - name: Obtain Let's Encrypt certificate
+      command: >
+        certbot --nginx -d www.veronicabishoy.wedding --non-interactive --agree-tos -m {{ vault_cert_email }}
+      args:
+        creates: /etc/letsencrypt/live/www.veronicabishoy.wedding/fullchain.pem
+
+    - name: Ensure Certbot auto-renewal timer is running
+      systemd:
+        name: certbot.timer
+        state: started
+        enabled: yes
+
+    # --- Application Setup ---
+    - name: Install Node.js and npm
+      apt:
+        name:
+          - nodejs
+          - npm
+        state: present
+
+    - name: Clean up previous deployment by removing the directory
+      file:
+        path: /var/www/vnbwedding
+        state: absent
+      become: yes
+
+    - name: Recreate deployment directory
+      file:
+        path: /var/www/vnbwedding
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+      become: yes
+
+    - name: Copy application files
+      synchronize:
+        src: "{{ playbook_dir }}/../"
+        dest: /var/www/vnbwedding
+        rsync_opts:
+          - "--exclude=node_modules"
+          - "--exclude=.git"
+          - "--exclude=ansible"
+          - "--exclude=dev.db*"
+          - "--exclude=prisma/prisma"
+        delete: yes
+      notify: Restart vnbwedding
+
+    - name: Set correct ownership for application files
+      file:
+        path: /var/www/vnbwedding
+        state: directory
+        owner: www-data
+        group: www-data
+        recurse: yes  # This applies the ownership to all files and subdirectories
+      become: yes
+
+    - name: Set correct ownership for npm cache directory
+      file:
+        path: /var/www/.npm
+        state: directory
+        owner: www-data
+        group: www-data
+        recurse: yes
+      become: yes
+
+    - name: Install npm dependencies
+      npm:
+        path: /var/www/vnbwedding
+      become: yes
+      become_user: www-data
+      notify: Restart vnbwedding
+
+    - name: Create .env file for production
+      template:
+        src: templates/env.j2
+        dest: /var/www/vnbwedding/.env
+        owner: www-data
+        group: www-data
+        mode: '0640'
+      notify: Restart vnbwedding
+
+    - name: Run Prisma migrations
+      command:
+        cmd: npx prisma migrate deploy
+        chdir: /var/www/vnbwedding
+      become: yes
+      become_user: www-data
+      environment:
+        DATABASE_URL: "postgresql://vnbwedding_user:{{ vault_db_password }}@localhost:5432/vnbwedding"
+      notify: Restart vnbwedding
+
+    - name: Run Prisma Generate
+      command:
+        cmd: npx prisma generate
+        chdir: /var/www/vnbwedding
+      become: yes
+      become_user: www-data
+      notify: Restart vnbwedding
+
+    - name: Create systemd service file
+      template:
+        src: templates/vnbwedding.service.j2
+        dest: /etc/systemd/system/vnbwedding.service
+      notify: Reload systemd and restart vnbwedding
+
+    - name: Ensure vnbwedding service is running
+      systemd:
+        name: vnbwedding
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: Restart Nginx
+      systemd:
+        name: nginx
+        state: restarted
+
+    - name: Restart vnbwedding
+      systemd:
+        name: vnbwedding
+        state: restarted
+
+    - name: Reload systemd and restart vnbwedding
+      systemd:
+        name: vnbwedding
+        daemon_reload: yes
+        state: restarted

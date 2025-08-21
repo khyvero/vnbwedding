@@ -46,10 +46,13 @@
           <% } %>
           <div class="w-px h-5 <%= isHome ? 'bg-white/30' : 'bg-stone-900/20' %>" aria-hidden="true"></div>
           <% if (viewer) { %>
-            <form id="logoutForm" method="post" action="/access/logout" class="hidden"><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
-            <button id="logoutBtn" type="button" class="hover:opacity-80" aria-label="Logout">Logout</button>
+            <form id="logoutForm" method="post" action="/access/logout" class="hidden">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="next" value="/">
+            </form>
+            <button id="headerLogoutBtn" type="button" class="hover:opacity-80" aria-label="Logout">Logout</button>
           <% } else { %>
-            <button id="accessBtn" type="button" class="hover:opacity-80" aria-label="Enter access code to login">Login</button>
+            <button id="headerAccessBtn" type="button" class="hover:opacity-80" aria-label="Enter access code to login">Login</button>
           <% } %>
         </div>
         <!-- Mobile -->
@@ -118,6 +121,18 @@
         iconOpen.classList.toggle('hidden');
         iconClosed.classList.toggle('hidden');
       });
+    }
+
+    // --- Desktop Button Wiring ---
+    const headerLogoutBtn = document.getElementById('headerLogoutBtn');
+    if (headerLogoutBtn) {
+      headerLogoutBtn.addEventListener('click', () => document.getElementById('logoutForm')?.submit());
+    }
+
+    const headerAccessBtn = document.getElementById('headerAccessBtn');
+    if (headerAccessBtn) {
+      // The showAccessModal function is defined globally in layout.ejs
+      headerAccessBtn.addEventListener('click', () => window.showAccessModal && window.showAccessModal('/'));
     }
 
     // --- Mobile Button Wiring ---

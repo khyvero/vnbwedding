@@ -34,7 +34,7 @@
       <p class="text-stone-600">This gallery is only available to our guests.</p>
       <p class="text-stone-500 text-sm mt-2">Please enter the access code from your invitation to view the photos.</p>
       <button
-        id="accessBtn"
+        id="galleryAccessBtn"
         type="button"
         class="mt-4 px-4 py-2 rounded-lg bg-stone-800 text-white hover:bg-stone-700"
         aria-label="Enter access code to login">
@@ -43,3 +43,15 @@
     </div>
   <% } %>
 </div>
+
+<% if (!viewer) { %>
+<script>
+  (function() {
+    const galleryAccessBtn = document.getElementById('galleryAccessBtn');
+    if (galleryAccessBtn) {
+      // The showAccessModal function is defined globally in layout.ejs
+      galleryAccessBtn.addEventListener('click', () => window.showAccessModal && window.showAccessModal('/gallery'));
+    }
+  })();
+</script>
+<% } %>

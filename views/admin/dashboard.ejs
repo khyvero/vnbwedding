@@ -145,6 +145,12 @@
         </div>
       </div>
     </div>
+
+    <!-- Download PDF Button -->
+    <button id="downloadPdfBtn" type="button"
+            class="rounded-lg px-3 py-2 border border-stone-300 text-sm hover:bg-stone-100">
+      Download PDF
+    </button>
   </div>
 
   <!-- Active filters display area -->
@@ -295,264 +301,332 @@
   </button>
 </div>
 
+<script src="/visual_assets/libs/jspdf.umd.min.js" defer></script>
+<script src="/visual_assets/libs/jspdf-autotable.min.js" defer></script>
+
 <script>
-  // ----- Add Guest modal -----
-  (function(){
-    const modal = document.getElementById('addModal');
-    const form  = document.getElementById('addGuestForm');
-    const errEl = document.getElementById('addGuestErr');
+  document.addEventListener('DOMContentLoaded', () => {
+    // ----- Add Guest modal -----
+    (function(){
+      const modal = document.getElementById('addModal');
+      const form  = document.getElementById('addGuestForm');
+      const errEl = document.getElementById('addGuestErr');
 
-    const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
-    const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+      const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
+      const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
 
-    document.getElementById('openAdd')?.addEventListener('click', () => {
-      errEl?.classList.add('hidden'); errEl.textContent = '';
-      showModal();
-    });
-    document.getElementById('closeAdd')?.addEventListener('click', hideModal);
-
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errEl?.classList.add('hidden'); errEl.textContent = '';
-
-      const fd   = new FormData(form);
-      const body = new URLSearchParams(fd);
-
-      try {
-        const res = await fetch(form.action, {
-          method: 'POST',
-          body,
-          credentials: 'same-origin',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'csrf-token': fd.get('_csrf') || ''
-          }
-        });
-
-        if (!res.ok) {
-          const text = (await res.text() || 'Error');
-          errEl.textContent = text;
-          errEl.classList.remove('hidden');
-          return;
-        }
-
-        window.location.reload();
-      } catch (err) {
-        errEl.textContent = 'Unexpected error: ' + err.message;
-        errEl.classList.remove('hidden');
-      }
-    });
-  })();
-
-  // ----- Edit Guest modal -----
-  (function(){
-    const modal = document.getElementById('editModal');
-    const form  = document.getElementById('editGuestForm');
-    const errEl = document.getElementById('editGuestErr');
-
-    const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
-    const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
-
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tr = e.target.closest('tr');
-        const inviteId = tr.dataset.inviteId;
-        const name = tr.querySelector('[data-col="name"]').innerText;
-        const group = tr.dataset.group;
-        const maxGuests = tr.dataset.maxGuests;
-
-        form.action = `/admin/invites/${inviteId}/update`;
-        form.querySelector('[name="accessName"]').value = name;
-        form.querySelector('[name="inviteGroup"]').value = group;
-        form.querySelector('[name="maxGuests"]').value = maxGuests;
-
-        errEl?.classList.add('hidden');
-        errEl.textContent = '';
+      document.getElementById('openAdd')?.addEventListener('click', () => {
+        errEl?.classList.add('hidden'); errEl.textContent = '';
         showModal();
       });
-    });
+      document.getElementById('closeAdd')?.addEventListener('click', hideModal);
 
-    document.getElementById('closeEdit')?.addEventListener('click', hideModal);
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errEl?.classList.add('hidden'); errEl.textContent = '';
 
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errEl?.classList.add('hidden'); errEl.textContent = '';
+        const fd   = new FormData(form);
+        const body = new URLSearchParams(fd);
 
-      const fd   = new FormData(form);
-      const body = new URLSearchParams(fd);
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body,
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'csrf-token': fd.get('_csrf') || ''
+            }
+          });
 
-      try {
-        const res = await fetch(form.action, {
-          method: 'POST',
-          body,
-          credentials: 'same-origin',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'csrf-token': fd.get('_csrf') || ''
+          if (!res.ok) {
+            const text = (await res.text() || 'Error');
+            errEl.textContent = text;
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          window.location.reload();
+        } catch (err) {
+          errEl.textContent = 'Unexpected error: ' + err.message;
+          errEl.classList.remove('hidden');
+        }
+      });
+    })();
+
+    // ----- Edit Guest modal -----
+    (function(){
+      const modal = document.getElementById('editModal');
+      const form  = document.getElementById('editGuestForm');
+      const errEl = document.getElementById('editGuestErr');
+
+      const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
+      const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const tr = e.target.closest('tr');
+          const inviteId = tr.dataset.inviteId;
+          const name = tr.querySelector('[data-col="name"]').innerText;
+          const group = tr.dataset.group;
+          const maxGuests = tr.dataset.maxGuests;
+
+          form.action = `/admin/invites/${inviteId}/update`;
+          form.querySelector('[name="accessName"]').value = name;
+          form.querySelector('[name="inviteGroup"]').value = group;
+          form.querySelector('[name="maxGuests"]').value = maxGuests;
+
+          errEl?.classList.add('hidden');
+          errEl.textContent = '';
+          showModal();
+        });
+      });
+
+      document.getElementById('closeEdit')?.addEventListener('click', hideModal);
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errEl?.classList.add('hidden'); errEl.textContent = '';
+
+        const fd   = new FormData(form);
+        const body = new URLSearchParams(fd);
+
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body,
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'csrf-token': fd.get('_csrf') || ''
+            }
+          });
+
+          if (!res.ok) {
+            const text = (await res.text() || 'Error');
+            errEl.textContent = text;
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          window.location.reload();
+        } catch (err) {
+          errEl.textContent = 'Unexpected error: ' + err.message;
+          errEl.classList.remove('hidden');
+        }
+      });
+    })();
+
+    // ----- Dashboard Interactivity (v5 - Active Filter Display) -----
+    (function() {
+      const table = document.getElementById('dashboardTable');
+      if (!table) return;
+
+      const activeFiltersContainer = document.getElementById('activeFilters');
+
+      // --- Menu Dropdown Logic ---
+      const setupMenu = (btnId, menuId) => {
+        const btn = document.getElementById(btnId);
+        const menu = document.getElementById(menuId);
+        if (!btn || !menu) return;
+
+        menu.addEventListener('click', e => e.stopPropagation());
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const otherMenuId = menuId === 'rowMenu' ? 'colMenu' : 'rowMenu';
+          document.getElementById(otherMenuId).classList.add('hidden');
+          menu.classList.toggle('hidden');
+        });
+      };
+      setupMenu('rowBtn', 'rowMenu');
+      setupMenu('colBtn', 'colMenu');
+      document.addEventListener('click', () => {
+        document.getElementById('rowMenu').classList.add('hidden');
+        document.getElementById('colMenu').classList.add('hidden');
+      });
+
+      // --- Update Active Filters Display ---
+      const updateActiveFiltersDisplay = () => {
+        const filters = [];
+        const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
+        if (ceremonyFilter) filters.push(`Ceremony: ${ceremonyFilter === 'attend' ? 'Attending' : 'Not Attending'}`);
+
+        const receptionFilter = rowMenu.querySelector('[name="reception"]:checked').value;
+        if (receptionFilter) filters.push(`Reception: ${receptionFilter === 'attend' ? 'Attending' : 'Not Attending'}`);
+
+        dupeCheckboxes.forEach(chk => {
+          if (chk.checked) {
+            const label = chk.closest('label').textContent.trim();
+            filters.push(label);
           }
         });
 
-        if (!res.ok) {
-          const text = (await res.text() || 'Error');
-          errEl.textContent = text;
-          errEl.classList.remove('hidden');
-          return;
+        const hiddenCols = [...colCheckboxes].filter(chk => !chk.checked).length;
+        if (hiddenCols > 0) filters.push(`${hiddenCols} hidden column${hiddenCols > 1 ? 's' : ''}`);
+
+        if (hlDupes.checked) filters.push('Highlighting duplicates');
+
+        if (filters.length > 0) {
+          activeFiltersContainer.innerHTML = '<strong>Active:</strong> ' + filters.map(f => `<span class="bg-stone-200 px-2 py-1 rounded-md">${f}</span>`).join('');
+          activeFiltersContainer.classList.remove('hidden');
+        } else {
+          activeFiltersContainer.innerHTML = '';
+          activeFiltersContainer.classList.add('hidden');
         }
+      };
 
-        window.location.reload();
-      } catch (err) {
-        errEl.textContent = 'Unexpected error: ' + err.message;
-        errEl.classList.remove('hidden');
-      }
-    });
-  })();
-
-  // ----- Dashboard Interactivity (v5 - Active Filter Display) -----
-  (function() {
-    const table = document.getElementById('dashboardTable');
-    if (!table) return;
-
-    const activeFiltersContainer = document.getElementById('activeFilters');
-
-    // --- Menu Dropdown Logic ---
-    const setupMenu = (btnId, menuId) => {
-      const btn = document.getElementById(btnId);
-      const menu = document.getElementById(menuId);
-      if (!btn || !menu) return;
-
-      menu.addEventListener('click', e => e.stopPropagation());
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const otherMenuId = menuId === 'rowMenu' ? 'colMenu' : 'rowMenu';
-        document.getElementById(otherMenuId).classList.add('hidden');
-        menu.classList.toggle('hidden');
-      });
-    };
-    setupMenu('rowBtn', 'rowMenu');
-    setupMenu('colBtn', 'colMenu');
-    document.addEventListener('click', () => {
-      document.getElementById('rowMenu').classList.add('hidden');
-      document.getElementById('colMenu').classList.add('hidden');
-    });
-
-    // --- Update Active Filters Display ---
-    const updateActiveFiltersDisplay = () => {
-      const filters = [];
-      const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
-      if (ceremonyFilter) filters.push(`Ceremony: ${ceremonyFilter === 'attend' ? 'Attending' : 'Not Attending'}`);
-
-      const receptionFilter = rowMenu.querySelector('[name="reception"]:checked').value;
-      if (receptionFilter) filters.push(`Reception: ${receptionFilter === 'attend' ? 'Attending' : 'Not Attending'}`);
-
-      dupeCheckboxes.forEach(chk => {
-        if (chk.checked) {
-          const label = chk.closest('label').textContent.trim();
-          filters.push(label);
-        }
-      });
-
-      const hiddenCols = [...colCheckboxes].filter(chk => !chk.checked).length;
-      if (hiddenCols > 0) filters.push(`${hiddenCols} hidden column${hiddenCols > 1 ? 's' : ''}`);
-
-      if (hlDupes.checked) filters.push('Highlighting duplicates');
-
-      if (filters.length > 0) {
-        activeFiltersContainer.innerHTML = '<strong>Active:</strong> ' + filters.map(f => `<span class="bg-stone-200 px-2 py-1 rounded-md">${f}</span>`).join('');
-        activeFiltersContainer.classList.remove('hidden');
-      } else {
-        activeFiltersContainer.innerHTML = '';
-        activeFiltersContainer.classList.add('hidden');
-      }
-    };
-
-    // --- Column Filtering ---
-    const colMenu = document.getElementById('colMenu');
-    const colCheckboxes = colMenu.querySelectorAll('[data-colchk]');
-    const updateColumns = () => {
-      colCheckboxes.forEach(chk => {
-        const colName = chk.dataset.colchk;
-        table.querySelectorAll(`[data-col="${colName}"]`).forEach(cell => {
-          cell.style.display = chk.checked ? '' : 'none';
+      // --- Column Filtering ---
+      const colMenu = document.getElementById('colMenu');
+      const colCheckboxes = colMenu.querySelectorAll('[data-colchk]');
+      const updateColumns = () => {
+        colCheckboxes.forEach(chk => {
+          const colName = chk.dataset.colchk;
+          table.querySelectorAll(`[data-col="${colName}"]`).forEach(cell => {
+            cell.style.display = chk.checked ? '' : 'none';
+          });
         });
+        updateActiveFiltersDisplay();
+      };
+      colCheckboxes.forEach(chk => chk.addEventListener('change', updateColumns));
+      colMenu.querySelector('#colAll').addEventListener('click', () => {
+        colCheckboxes.forEach(chk => chk.checked = true);
+        updateColumns();
       });
-      updateActiveFiltersDisplay();
-    };
-    colCheckboxes.forEach(chk => chk.addEventListener('change', updateColumns));
-    colMenu.querySelector('#colAll').addEventListener('click', () => {
-      colCheckboxes.forEach(chk => chk.checked = true);
+      colMenu.querySelector('#colNone').addEventListener('click', () => {
+        colCheckboxes.forEach(chk => chk.checked = false);
+        updateColumns();
+      });
+
+      // --- Row Filtering ---
+      const rowMenu = document.getElementById('rowMenu');
+      const tableRows = table.querySelectorAll('tbody tr');
+      const dupeCheckboxes = rowMenu.querySelectorAll('[data-dupe]');
+
+      const applyRowFilters = () => {
+        const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
+        const receptionFilter = rowMenu.querySelector('[name="reception"]:checked').value;
+        const activeDupeFilters = [...dupeCheckboxes]
+          .filter(chk => chk.checked)
+          .map(chk => chk.dataset.dupe);
+
+        tableRows.forEach(row => {
+          const ceremonyMatch = (ceremonyFilter === '') ||
+                                (ceremonyFilter === 'attend' && row.dataset.cer === 'yes') ||
+                                (ceremonyFilter === 'not' && row.dataset.cer === 'no');
+          
+          const receptionMatch = (receptionFilter === '') ||
+                                 (receptionFilter === 'attend' && row.dataset.rec === 'yes') ||
+                                 (receptionFilter === 'not' && row.dataset.rec === 'no');
+
+          const dupeMatch = activeDupeFilters.length === 0 || activeDupeFilters.every(filter => {
+            const dupes = row.dataset.dupes || '';
+            if (filter === 'name') return dupes.includes('dupe_name');
+            if (filter === 'place') return dupes.includes('dupe_place');
+            if (filter === 'cross') return dupes.includes('name_in_place') || dupes.includes('place_in_name');
+            return false;
+          });
+
+          const isVisible = ceremonyMatch && receptionMatch && dupeMatch;
+          row.style.display = isVisible ? '' : 'none';
+        });
+        updateActiveFiltersDisplay();
+      };
+
+      rowMenu.addEventListener('change', applyRowFilters);
+
+      document.getElementById('rowsShowAll').addEventListener('click', () => {
+        rowMenu.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+        rowMenu.querySelector('input[name="ceremony"][value=""]').checked = true;
+        rowMenu.querySelector('input[name="reception"][value=""]').checked = true;
+        applyRowFilters();
+      });
+
+      document.getElementById('rowAll').addEventListener('click', () => {
+        dupeCheckboxes.forEach(c => c.checked = true);
+        applyRowFilters();
+      });
+
+      document.getElementById('rowNone').addEventListener('click', () => {
+        dupeCheckboxes.forEach(c => c.checked = false);
+        applyRowFilters();
+      });
+      
+      // --- Highlighting ---
+      const hlDupes = document.getElementById('hlDupes');
+      hlDupes.addEventListener('change', () => {
+        table.classList.toggle('highlight-dupes', hlDupes.checked);
+        updateActiveFiltersDisplay();
+      });
+      if (hlDupes.checked) {
+        table.classList.add('highlight-dupes');
+      }
+
+      // --- Initial State ---
       updateColumns();
-    });
-    colMenu.querySelector('#colNone').addEventListener('click', () => {
-      colCheckboxes.forEach(chk => chk.checked = false);
-      updateColumns();
-    });
+      applyRowFilters();
+    })();
 
-    // --- Row Filtering ---
-    const rowMenu = document.getElementById('rowMenu');
-    const tableRows = table.querySelectorAll('tbody tr');
-    const dupeCheckboxes = rowMenu.querySelectorAll('[data-dupe]');
+    // ----- PDF Generation (Robust) -----
+    (function() {
+      const downloadBtn = document.getElementById('downloadPdfBtn');
+      if (!downloadBtn) return;
 
-    const applyRowFilters = () => {
-      const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
-      const receptionFilter = rowMenu.querySelector('[name="reception"]:checked').value;
-      const activeDupeFilters = [...dupeCheckboxes]
-        .filter(chk => chk.checked)
-        .map(chk => chk.dataset.dupe);
+      const generatePdf = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const table = document.getElementById('dashboardTable');
+        const head = [];
+        const body = [];
 
-      tableRows.forEach(row => {
-        const ceremonyMatch = (ceremonyFilter === '') ||
-                              (ceremonyFilter === 'attend' && row.dataset.cer === 'yes') ||
-                              (ceremonyFilter === 'not' && row.dataset.cer === 'no');
-        
-        const receptionMatch = (receptionFilter === '') ||
-                               (receptionFilter === 'attend' && row.dataset.rec === 'yes') ||
-                               (receptionFilter === 'not' && row.dataset.rec === 'no');
-
-        const dupeMatch = activeDupeFilters.length === 0 || activeDupeFilters.every(filter => {
-          const dupes = row.dataset.dupes || '';
-          if (filter === 'name') return dupes.includes('dupe_name');
-          if (filter === 'place') return dupes.includes('dupe_place');
-          if (filter === 'cross') return dupes.includes('name_in_place') || dupes.includes('place_in_name');
-          return false;
+        const headerCells = table.querySelectorAll('thead th');
+        headerCells.forEach(th => {
+          const isVisible = window.getComputedStyle(th).display !== 'none';
+          if (isVisible && th.textContent.trim() !== 'Actions') {
+            head.push(th.textContent.trim());
+          }
         });
 
-        const isVisible = ceremonyMatch && receptionMatch && dupeMatch;
-        row.style.display = isVisible ? '' : 'none';
+        const tableRows = table.querySelectorAll('tbody tr');
+        tableRows.forEach(tr => {
+          const isVisible = window.getComputedStyle(tr).display !== 'none';
+          if (isVisible) {
+            const rowData = [];
+            const dataCells = tr.querySelectorAll('td');
+            dataCells.forEach((td, index) => {
+              const headerCell = headerCells[index];
+              const isColVisible = window.getComputedStyle(headerCell).display !== 'none';
+
+              if (isColVisible && headerCell.textContent.trim() !== 'Actions') {
+                if (headerCell.dataset.col === 'name') {
+                  rowData.push(td.querySelector('div:first-child').textContent.trim());
+                } else {
+                  rowData.push(td.textContent.trim());
+                }
+              }
+            });
+            body.push(rowData);
+          }
+        });
+
+        doc.autoTable({
+          head: [head],
+          body: body,
+          didDrawPage: function (data) {
+            doc.setFontSize(20);
+            doc.setTextColor(40);
+            doc.text("Wedding Guest List", data.settings.margin.left, 22);
+          },
+          margin: { top: 30 }
+        });
+
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+        doc.save(`guest-list-${dateStr}.pdf`);
+      };
+
+      downloadBtn.addEventListener('click', () => {
+        generatePdf();
       });
-      updateActiveFiltersDisplay();
-    };
-
-    rowMenu.addEventListener('change', applyRowFilters);
-
-    document.getElementById('rowsShowAll').addEventListener('click', () => {
-      rowMenu.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-      rowMenu.querySelector('input[name="ceremony"][value=""]').checked = true;
-      rowMenu.querySelector('input[name="reception"][value=""]').checked = true;
-      applyRowFilters();
-    });
-
-    document.getElementById('rowAll').addEventListener('click', () => {
-      dupeCheckboxes.forEach(c => c.checked = true);
-      applyRowFilters();
-    });
-
-    document.getElementById('rowNone').addEventListener('click', () => {
-      dupeCheckboxes.forEach(c => c.checked = false);
-      applyRowFilters();
-    });
-    
-    // --- Highlighting ---
-    const hlDupes = document.getElementById('hlDupes');
-    hlDupes.addEventListener('change', () => {
-      table.classList.toggle('highlight-dupes', hlDupes.checked);
-      updateActiveFiltersDisplay();
-    });
-    if (hlDupes.checked) {
-      table.classList.add('highlight-dupes');
-    }
-
-    // --- Initial State ---
-    updateColumns();
-    applyRowFilters();
-  })();
+    })();
+  });
 </script>

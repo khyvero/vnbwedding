@@ -12,6 +12,13 @@
     </div>
   <% } %>
 
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+      <strong class="font-bold">Error:</strong>
+      <span class="block sm:inline"><%= error %></span>
+    </div>
+  <% } %>
+
   <form id="rsvpForm" method="post" action="/rsvp" class="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-[#F7EEE7]">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 

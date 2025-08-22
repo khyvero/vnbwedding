@@ -281,7 +281,7 @@ app.get('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
       guests:        (r.guests || []).map(g => ({ name: g.placeCardName || '', dietary: g.dietary || '' }))
     };
 
-    res.render('rsvp', { csrfToken: req.csrfToken(), defaults, viewer, maxGuests: invite.maxGuests });
+    res.render('rsvp', { csrfToken: req.csrfToken(), defaults, viewer, maxGuests: invite.maxGuests, error: null });
   } catch (err) { next(err); }
 });
 
@@ -291,6 +291,46 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
       placeCardName, email, dietary, ceremony, reception,
       transport, printedInvite, notes, guestNames, guestDietaries
     } = req.body;
+
+    const validationRules = {
+      'Place card name': { value: placeCardName, max: 255 },
+      'Email': { value: email, max: 255 },
+      'Dietary requirements': { value: dietary, max: 1024 },
+      'Notes': { value: notes, max: 1024 },
+    };
+
+    for (const [fieldName, rule] of Object.entries(validationRules)) {
+      if (rule.value && rule.value.length > rule.max) {
+        const viewer = await getViewer(req);
+        const invite = await prisma.invite.findUnique({
+          where: { id: req.access.inviteId },
+          select: { maxGuests: true }
+        });
+
+        const defaults = {
+          placeCardName: placeCardName || '',
+          email: email || '',
+          dietary: dietary || '',
+          ceremony: ceremony || '',
+          reception: reception || '',
+          transport: transport || '',
+          printedInvite: printedInvite || '',
+          notes: notes || '',
+          guests: (Array.isArray(guestNames) ? guestNames : []).map((name, i) => ({
+            placeCardName: name,
+            dietary: (Array.isArray(guestDietaries) ? guestDietaries[i] : '') || ''
+          }))
+        };
+
+        return res.status(400).render('rsvp', {
+          csrfToken: req.csrfToken(),
+          defaults,
+          viewer,
+          maxGuests: invite.maxGuests,
+          error: `${fieldName} is too long (max ${rule.max} characters).`
+        });
+      }
+    }
 
     const invite = await prisma.invite.findUnique({
       where: { id: req.access.inviteId },

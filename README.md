@@ -103,9 +103,13 @@ This section serves as a memory bank, tracking all development progress.
 
 ### Changelog (Session of 2025-08-25)
 
-*   **Homepage Layout & Alignment:**
-    *   **Final Alignment Correction:** Corrected the layout of the homepage sections. All section titles (e.g., "Locations", "Timeline") are now properly center-aligned, while all content within those sections is left-aligned for readability.
-    *   **Google Maps Links:** Updated the "Show location" buttons to open Google Maps with the destination pre-filled, rather than prompting for directions.
+*   **Mobile Responsiveness:**
+    *   Fixed a visual bug on mobile devices where the site logo in the header would overlap with the page title. The header and logo sizes have been adjusted for smaller screens to ensure a clean and readable layout.
+
+*   **RSVP Form Validation & Security:**
+    *   **Input Length Validation:** Implemented server-side validation to enforce maximum character limits on all text fields in the RSVP form, preventing potential data overflow issues.
+    *   **Enhanced User Experience:** Instead of showing a generic error page for invalid input, the form is now re-rendered with the user's previously submitted data, and a clear error message is displayed directly on the page. This prevents data loss and provides a much better user experience.
+    *   **Security Audit:** Confirmed that the RSVP form is protected against common vulnerabilities. The application uses Prisma ORM to prevent SQL injection, EJS for automatic XSS protection, and CSRF tokens to guard against cross-site request forgery.
 
 ### Changelog (Session of 2025-08-24)
 

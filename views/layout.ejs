@@ -42,6 +42,12 @@
   </main>
 
   <% if (typeof isAdmin === 'undefined' || !isAdmin) { %>
+    <%
+      const isHomePage = (typeof page !== 'undefined' && page === 'home');
+      const locationsLink = isHomePage ? '#locations' : '/#locations';
+      const timelineLink = isHomePage ? '#timeline' : '/#timeline';
+      const faqsLink = isHomePage ? '#faqs' : '/#faqs';
+    %>
     <footer id="contact-footer" class="bg-[#1E2A44] border-t border-stone-800 text-stone-300 pt-12 mt-16">
       <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
 
@@ -66,9 +72,9 @@
           <p class="font-semibold text-stone-100 mb-4">Quick Links</p>
           <ul class="space-y-2">
             <li><a href="/rsvp" class="hover:underline">RSVP</a></li>
-            <li><a href="/#location" class="hover:underline">Locations</a></li>
-            <li><a href="/#timeline" class="hover:underline">Timeline</a></li>
-            <li><a href="/#faqs" class="hover:underline">FAQs</a></li>
+            <li><a href="<%= locationsLink %>" class="hover:underline">Locations</a></li>
+            <li><a href="<%= timelineLink %>" class="hover:underline">Timeline</a></li>
+            <li><a href="<%= faqsLink %>" class="hover:underline">FAQs</a></li>
           </ul>
         </div>
 

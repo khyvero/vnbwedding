@@ -101,7 +101,22 @@ This project includes a complete Ansible playbook to deploy the application to a
 
 This section serves as a memory bank, tracking all development progress.
 
-**Last Updated:** 2025-08-21
+### Changelog (Session of 2025-08-22)
+
+*   **PDF Guest List:** Completely redesigned the generated PDF of the guest list to be more professional and visually appealing. The new design includes the official wedding logo, a clear title, improved margins, and a color-coded table with alternating row colors for enhanced readability. The "When" and "Actions" columns have been removed to focus on the most essential guest information.
+*   **Custom Error Pages:** Implemented a robust and user-friendly error handling system. All errors, including 404s, now display a custom-styled page that provides a helpful, context-aware message and a clear way for users to report issues.
+*   **Global Login/Logout Functionality:** Fixed widespread bugs where the login and logout buttons were unresponsive on internal pages (e.g., Story, RSVP). The issues were resolved by consolidating the client-side logic, removing duplicate forms, and using shared CSS classes to trigger the respective actions, making the authentication flow robust and reliable across the entire site.
+*   **Role-Specific Buttons:** Converted the "Bridesmaids Info" and "Groomsmen Info" buttons on the homepage from JavaScript-driven buttons to standard hyperlinks (`<a>` tags). This improves functionality, accessibility, and follows modern web development best practices.
+*   **Homepage RSVP Button:** Fixed a critical bug where the main RSVP button on the homepage was unresponsive. The button's event handler was refactored to use the global `rsvp-button` class and `data-` attributes, ensuring consistent functionality with the rest of the site.
+*   **Site-Wide Navigation:**
+    *   **Header Links:** Corrected the navigation links in the main header ("Story," "Gallery," "Bridesmaids," "Groomsmen") to prevent unnecessary full-page reloads, creating a smoother single-page application feel.
+    *   **Footer Links:** Repaired the "Locations" link in the footer to correctly navigate to the corresponding section on the homepage.
+*   **Admin Dashboard Stability:**
+    *   **"Add Guest" Functionality:** Resolved a "Failed to fetch" error that occurred when adding or updating a guest. The API endpoints were updated to return a modern JSON response instead of a server-side redirect, aligning with the client-side script's expectations.
+*   **RSVP Form UI/UX:**
+    *   **Dynamic Layout:** Completely refactored the RSVP form's HTML structure and CSS classes to fix major visual bugs. The form now correctly shows and hides sections based on user selections without leaving behind empty spaces or orphaned separators, resulting in a clean and logical user experience.
+
+**Last Updated:** 2025-08-22
 
 **✅ Completed Tasks:**
 
@@ -165,7 +180,7 @@ This section serves as a memory bank, tracking all development progress.
     *   **Ansible Playbook:** Created a comprehensive Ansible playbook to fully automate the deployment process.
     *   **Dual Database Strategy:** The application is now configured to use PostgreSQL in production for robustness and SQLite in development for simplicity. The Ansible playbook automatically modifies the Prisma schema on the server during deployment.
     *   **Local Development Script:** Added a `dev.sh` script to streamline the local development setup, automatically configuring the environment for SQLite and running the necessary migrations.
-    *   **Production Web Server & SSL:** The playbook now installs and configures Nginx as a reverse proxy and uses Certbot to automatically provision and renew a free Let's Encrypt SSL certificate, enabling HTTPS.
+    *   **Production Web Server & SSL:** The playbook now installs and infigures Nginx as a reverse proxy and uses Certbot to automatically provision and renew a free Let's Encrypt SSL certificate, enabling HTTPS.
 
 **⚠️ Next Steps:**
 

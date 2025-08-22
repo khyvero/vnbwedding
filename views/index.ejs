@@ -60,31 +60,29 @@
 
       <div class="mt-6 flex justify-center items-center gap-x-4">
         <button
-          id="rsvpBtn"
           type="button"
-          class="inline-flex items-center rounded-full bg-[#1E2A44] text-white px-4 py-2 shadow hover:bg-[#6595BF]"
-          onclick="<% if (viewer) { %>window.location.href='/rsvp'<% } else { %>window.showAccessModal('/rsvp')<% } %>"
+          class="rsvp-button inline-flex items-center rounded-full bg-[#1E2A44] text-white px-4 py-2 shadow hover:bg-[#6595BF]"
+          data-logged-in="<%= !!viewer %>"
+          data-target-url="/rsvp"
         >
           RSVP
         </button>
 
         <% if (viewer && viewer.group === 'bridesmaids') { %>
-        <button
-          type="button"
+        <a
+          href="/bridesmaids"
           class="inline-flex items-center rounded-full bg-white/20 text-white px-4 py-2 text-sm shadow hover:bg-white/30"
-          onclick="window.location.href='/bridesmaids'"
         >
           Bridesmaids Info
-        </button>
+        </a>
         <% } %>
         <% if (viewer && viewer.group === 'groomsmen') { %>
-        <button
-          type="button"
+        <a
+          href="/groomsmen"
           class="inline-flex items-center rounded-full bg-white/20 text-white px-4 py-2 text-sm shadow hover:bg-white/30"
-          onclick="window.location.href='/groomsmen'"
         >
           Groomsmen Info
-        </button>
+        </a>
         <% } %>
       </div>
     </div>

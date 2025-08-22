@@ -560,7 +560,7 @@ app.post('/admin/invites/create-primary', requireAdmin, csrfProtection, async (r
       }
     });
 
-    res.redirect('/admin');
+    res.json({ success: true });
   } catch (e) { next(e); }
 });
 
@@ -584,7 +584,7 @@ app.post('/admin/invites/:id/update', requireAdmin, csrfProtection, async (req, 
       data: updateData,
     });
 
-    res.redirect('/admin');
+    res.json({ success: true });
   } catch (e) {
     next(e);
   }
@@ -632,16 +632,39 @@ app.post('/admin/guests/:id/delete', requireAdmin, csrfProtection, async (req, r
 // ---------- Health ----------
 app.get('/healthz', (req, res) => res.json({ ok: true }));
 
+// ---------- 404 Handler (must be after all other routes) ----------
+app.use(csrfProtection, async (req, res, next) => {
+  res.status(404);
+  const viewer = await getViewer(req);
+  res.render('error', { 
+    viewer,
+    csrfToken: req.csrfToken(),
+    error: { message: 'Page Not Found' }
+  });
+});
+
 // ---------- Error handler (last) ----------
-app.use((err, req, res, next) => {
-  if (err.code === 'EBADCSRFTOKEN') {
-    console.warn('CSRF token error:', err.message);
-    return res
-      .status(403)
-      .send('Session expired or form was reloaded. Please open /rsvp again and resubmit.');
-  }
+app.use(async (err, req, res, next) => {
   console.error(err);
-  res.status(500).send(err.message);
+  const status = err.status || 500;
+  res.status(status);
+
+  const viewer = await getViewer(req);
+  
+  // Make sure we have a CSRF token, even if the error happened before the CSRF middleware
+  let csrfToken = '';
+  if (req.csrfToken) { // The function might not exist if csurf failed
+    try { csrfToken = req.csrfToken(); } catch (e) { /* ignore */ }
+  }
+
+  res.render('error', {
+    viewer,
+    csrfToken,
+    error: {
+      message: err.message,
+      status
+    }
+  });
 });
 
 // ---------- Start ----------

@@ -8,10 +8,18 @@
 
   const logoSrc = isHome ? '/visual_assets/public/logo_gold_100x100.svg' : '/visual_assets/public/logo_gold_100x100.svg';
 
+  // Section links (relative on home, absolute otherwise)
   const locationsLink = isHome ? '#locations' : '/#locations';
   const timelineLink = isHome ? '#timeline' : '/#timeline';
   const registryLink = isHome ? '#registry' : '/#registry';
   const faqsLink = isHome ? '#faqs' : '/#faqs';
+  const contactLink = isHome ? '#contact-footer' : '/#contact-footer';
+
+  // Page links (always absolute)
+  const storyLink = '/story';
+  const galleryLink = '/gallery';
+  const bridesmaidsLink = '/bridesmaids';
+  const groomsmenLink = '/groomsmen';
 %>
 
 <header id="page-header" class="<%= headerClasses %> pt-[env(safe-area-inset-top,0px)]">
@@ -23,7 +31,7 @@
         <nav class="flex items-center space-x-6 text-sm">
           <a href="<%= locationsLink %>" class="hover:opacity-80">Locations</a>
           <a href="<%= timelineLink %>" class="hover:opacity-80">Timeline</a>
-          <a href="/story" class="hover:opacity-80">Story</a>
+          <a href="<%= storyLink %>" class="hover:opacity-80">Story</a>
           <a href="<%= registryLink %>" class="hover:opacity-80">Registry</a>
         </nav>
       </div>
@@ -40,7 +48,13 @@
         <!-- Desktop -->
         <div class="hidden md:flex items-center gap-6 text-sm">
           <% if (viewer) { %>
-            <a href="/gallery" class="hover:opacity-80">Gallery</a>
+            <a href="<%= galleryLink %>" class="hover:opacity-80">Gallery</a>
+            <% if (viewer.group === 'bridesmaids') { %>
+              <a href="<%= bridesmaidsLink %>" class="hover:opacity-80">Bridesmaids</a>
+            <% } %>
+            <% if (viewer.group === 'groomsmen') { %>
+              <a href="<%= groomsmenLink %>" class="hover:opacity-80">Groomsmen</a>
+            <% } %>
           <% } %>
           <a href="<%= faqsLink %>" class="hover:opacity-80">FAQs</a>
           <a href="#contact-footer" class="hover:opacity-80">Contact</a>
@@ -50,9 +64,9 @@
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="next" value="/">
             </form>
-            <button id="headerLogoutBtn" type="button" class="hover:opacity-80" aria-label="Logout">Logout</button>
+            <button type="button" class="logout-button hover:opacity-80" aria-label="Logout">Logout</button>
           <% } else { %>
-            <button id="headerAccessBtn" type="button" class="hover:opacity-80" aria-label="Enter access code to login">Login</button>
+            <button type="button" class="login-button hover:opacity-80" aria-label="Enter access code to login">Login</button>
           <% } %>
         </div>
         <!-- Mobile -->
@@ -72,10 +86,16 @@
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       <a href="<%= locationsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Locations</a>
       <a href="<%= timelineLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Timeline</a>
-      <a href="/story" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Story</a>
+      <a href="<%= storyLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Story</a>
       <a href="<%= registryLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Registry</a>
       <% if (viewer) { %>
-        <a href="/gallery" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Gallery</a>
+        <a href="<%= galleryLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Gallery</a>
+        <% if (viewer.group === 'bridesmaids') { %>
+          <a href="<%= bridesmaidsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Bridesmaids</a>
+        <% } %>
+        <% if (viewer.group === 'groomsmen') { %>
+          <a href="<%= groomsmenLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Groomsmen</a>
+        <% } %>
       <% } %>
       <a href="<%= faqsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">FAQs</a>
       <a href="#contact-footer" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Contact</a>
@@ -83,9 +103,9 @@
     <div class="pt-4 pb-3 border-t border-white/20">
       <div class="flex items-center px-5">
         <% if (viewer) { %>
-          <button id="mobileLogoutBtn" type="button" class="w-full text-left rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/20" aria-label="Logout">Logout</button>
+          <button type="button" class="logout-button w-full text-left rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/20" aria-label="Logout">Logout</button>
         <% } else { %>
-          <button id="mobileAccessBtn" type="button" class="w-full text-left rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/20" aria-label="Enter access code to login">Login</button>
+          <button type="button" class="login-button w-full text-left rounded-md px-3 py-2 text-base font-medium text-white hover:bg-white/20" aria-label="Enter access code to login">Login</button>
         <% } %>
       </div>
     </div>
@@ -94,7 +114,7 @@
 
 <script>
   // --- Header Logic ---
-  (function() {
+  document.addEventListener('DOMContentLoaded', () => {
     const header = document.getElementById('page-header');
     const isHome = <%- isHome %>;
 
@@ -123,28 +143,27 @@
       });
     }
 
-    // --- Desktop Button Wiring ---
-    const headerLogoutBtn = document.getElementById('headerLogoutBtn');
-    if (headerLogoutBtn) {
-      headerLogoutBtn.addEventListener('click', () => document.getElementById('logoutForm')?.submit());
+    // --- Login/Logout ---
+    const logoutForm = document.getElementById('logoutForm');
+    if (logoutForm) {
+      document.querySelectorAll('.logout-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tokenEl = document.querySelector('meta[name="csrf-token"]');
+          const inputEl = logoutForm.querySelector('input[name="_csrf"]');
+          if (tokenEl && inputEl) {
+            inputEl.value = tokenEl.getAttribute('content');
+          }
+          logoutForm.submit();
+        });
+      });
     }
 
-    const headerAccessBtn = document.getElementById('headerAccessBtn');
-    if (headerAccessBtn) {
-      // The showAccessModal function is defined globally in layout.ejs
-      headerAccessBtn.addEventListener('click', () => window.showAccessModal && window.showAccessModal('/'));
-    }
-
-    // --- Mobile Button Wiring ---
-    const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
-    if (mobileLogoutBtn) {
-        mobileLogoutBtn.addEventListener('click', () => document.getElementById('logoutForm')?.submit());
-    }
-
-    const mobileAccessBtn = document.getElementById('mobileAccessBtn');
-    if (mobileAccessBtn) {
-        // The showAccessModal function is defined globally in layout.ejs
-        mobileAccessBtn.addEventListener('click', () => window.showAccessModal && window.showAccessModal('/'));
-    }
-  })();
+    document.querySelectorAll('.login-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.showAccessModal) {
+          window.showAccessModal('/');
+        }
+      });
+    });
+  });
 </script>

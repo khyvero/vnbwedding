@@ -8,10 +8,7 @@
   <% if (viewer?.name) { %>
     <div class="flex items-center justify-between rounded-lg bg-[#FFFFFF] px-4 py-3 text-[#1E2A44] mb-6">
       <div>Hi, <strong class="font-semibold"><%= viewer.name %></strong> — you’re all set to RSVP.</div>
-      <form id="logoutForm" method="post" action="/access/logout">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <button type="button" id="logoutBtn" class="text-xs underline hover:no-underline text-[#1E2A44]">Not you?</button>
-      </form>
+      <button type="button" class="logout-button text-xs underline hover:no-underline text-[#1E2A44]">Not you?</button>
     </div>
   <% } %>
 
@@ -45,9 +42,10 @@
     </div>
 
     <!-- All subsequent questions are grouped here -->
-    <div id="attendingExtras" class="space-y-6 pt-4 border-t border-stone-200">
-      <!-- Reception-only questions -->
-      <div id="receptionExtras">
+    <div id="attendingExtras" class="hidden pt-4 border-t border-stone-200 divide-y divide-stone-200">
+
+      <!-- Reception-specific questions -->
+      <div id="receptionQuestions" class="hidden pt-6 space-y-6">
         <div>
           <label for="placeCardName" class="block font-medium mb-2">What name would you like on your place card?</label>
           <input id="placeCardName" name="placeCardName"
@@ -63,26 +61,26 @@
             We will share personalised dish options with you closer to the day.
           </p>
         </div>
-      </div>
 
-      <!-- Additional Guests -->
-      <% if (maxGuests > 0) { %>
-      <div class="space-y-4 border-t border-stone-200 pt-6">
-        <p class="font-medium">Additional Guests</p>
-        <div id="guests" class="space-y-4">
-          <% for(let i = 0; i < maxGuests; i++) { %>
-            <div class="space-y-2 p-4 border border-stone-200 rounded-lg">
-              <p class="font-medium text-sm">Extra Guest <%= i + 1 %></p>
-              <input name="guestNames[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].placeCardName : '' %>" placeholder="Guest name" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
-              <input name="guestDietaries[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].dietary : '' %>" placeholder="Allergies/dietary" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
-            </div>
-          <% } %>
+        <!-- Additional Guests -->
+        <% if (maxGuests > 0) { %>
+        <div id="guestsSection" class="space-y-4">
+          <p class="font-medium">Additional Guests</p>
+          <div id="guests" class="space-y-4">
+            <% for(let i = 0; i < maxGuests; i++) { %>
+              <div class="space-y-2 p-4 border border-stone-200 rounded-lg">
+                <p class="font-medium text-sm">Extra Guest <%= i + 1 %></p>
+                <input name="guestNames[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].placeCardName : '' %>" placeholder="Guest name" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
+                <input name="guestDietaries[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].dietary : '' %>" placeholder="Allergies/dietary" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
+              </div>
+            <% } %>
+          </div>
         </div>
+        <% } %>
       </div>
-      <% } %>
 
       <!-- Transport -->
-      <div id="transportSection" class="space-y-4 border-t border-stone-200 pt-6">
+      <div id="transportSection" class="hidden pt-6 space-y-4">
         <p class="font-medium">Do you require transport between the ceremony and reception venues?</p>
         <div class="flex items-center gap-6 mt-2">
           <label class="inline-flex items-center gap-2">
@@ -96,32 +94,35 @@
         </div>
       </div>
 
-      <!-- Printed Invitation -->
-      <div class="border-t border-stone-200 pt-6">
-        <p class="font-medium">Would you like to receive a printed invitation card?</p>
-        <div class="flex items-center gap-6 mt-2">
-          <label class="inline-flex items-center gap-2">
-            <input type="radio" name="printedInvite" value="yes" <%= defaults.printedInvite==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> Yes
-          </label>
-          <label class="inline-flex items-center gap-2">
-            <input type="radio" name="printedInvite" value="no"  <%= defaults.printedInvite==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> No
-          </label>
+      <!-- General questions (shown for either ceremony or reception) -->
+      <div id="generalQuestions" class="pt-6 space-y-6">
+        <!-- Printed Invitation -->
+        <div>
+          <p class="font-medium">Would you like to receive a printed invitation card?</p>
+          <div class="flex items-center gap-6 mt-2">
+            <label class="inline-flex items-center gap-2">
+              <input type="radio" name="printedInvite" value="yes" <%= defaults.printedInvite==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> Yes
+            </label>
+            <label class="inline-flex items-center gap-2">
+              <input type="radio" name="printedInvite" value="no"  <%= defaults.printedInvite==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> No
+            </label>
+          </div>
+          <p class="text-xs text-[#1E2A44] opacity-80 mt-2">
+              If yes, please send your full name and postal address via WhatsApp or Email.
+          </p>
         </div>
-        <p class="text-xs text-[#1E2A44] opacity-80 mt-2">
-            If yes, please send your full name and postal address via WhatsApp or Email.
-        </p>
-      </div>
 
-      <!-- Notes -->
-      <div class="space-y-4 border-t border-stone-200 pt-6">
-        <p class="font-medium">Special Assistance or Additional Notes:</p>
-        <textarea name="notes" rows="3" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]"><%= defaults.notes || '' %></textarea>
-      </div>
+        <!-- Notes -->
+        <div>
+          <p class="font-medium">Special Assistance or Additional Notes:</p>
+          <textarea name="notes" rows="3" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]"><%= defaults.notes || '' %></textarea>
+        </div>
 
-      <!-- Email -->
-      <div class="space-y-4 pt-6">
-        <p class="font-medium">Email (for updates, optional):</p>
-        <input type="email" name="email" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]" value="<%= defaults.email || '' %>">
+        <!-- Email -->
+        <div>
+          <p class="font-medium">Email (for updates, optional):</p>
+          <input type="email" name="email" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]" value="<%= defaults.email || '' %>">
+        </div>
       </div>
     </div>
 
@@ -134,10 +135,11 @@
 
 <script>
   (function(){
-    const extras = document.getElementById('receptionExtras');
     const nameInp = document.getElementById('placeCardName');
-    const transportSection = document.getElementById('transportSection');
     const attendingExtras = document.getElementById('attendingExtras');
+    const receptionQuestions = document.getElementById('receptionQuestions');
+    const transportSection = document.getElementById('transportSection');
+    const generalQuestions = document.getElementById('generalQuestions');
 
     function sync(){
       const ceremonySel = document.querySelector('input[name="ceremony"]:checked');
@@ -148,15 +150,18 @@
       const isAttendingAnything = isAttendingCeremony || isAttendingReception;
 
       // Show/hide the entire block of follow-up questions
-      if (attendingExtras) attendingExtras.classList.toggle('hidden', !isAttendingAnything);
+      attendingExtras.classList.toggle('hidden', !isAttendingAnything);
 
-      // Show/hide reception-specific questions (name, dietary)
-      if (extras) extras.classList.toggle('hidden', !isAttendingReception);
+      // Show/hide reception-specific questions (name, dietary, guests)
+      receptionQuestions.classList.toggle('hidden', !isAttendingReception);
       if (nameInp) nameInp.required = isAttendingReception;
 
       // Show/hide transport question (only if attending BOTH ceremony and reception)
       const showTransport = isAttendingCeremony && isAttendingReception;
-      if (transportSection) transportSection.classList.toggle('hidden', !showTransport);
+      transportSection.classList.toggle('hidden', !showTransport);
+
+      // Show/hide general questions (if attending anything)
+      generalQuestions.classList.toggle('hidden', !isAttendingAnything);
     }
 
     document.querySelectorAll('input[name="ceremony"], input[name="reception"]').forEach(function(r){
@@ -164,31 +169,15 @@
     });
     sync(); // initial state on load
 
-    // --- CSRF token refresh ---
+    // --- CSRF token refresh for RSVP form ---
     const rsvpForm = document.getElementById('rsvpForm');
     const rsvpSubmitBtn = rsvpForm?.querySelector('button[type="submit"]');
-    const logoutForm = document.getElementById('logoutForm');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    function refreshToken(form) {
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const input = form.querySelector('input[name="_csrf"]');
-        if (token && input) {
-            input.value = token;
-        }
-    }
-
-    // When clicking the submit button, just refresh the token.
-    // The form will submit on its own as a default browser action.
     rsvpSubmitBtn?.addEventListener('click', () => {
-        refreshToken(rsvpForm);
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      const input = rsvpForm.querySelector('input[name="_csrf"]');
+      if (token && input) {
+        input.value = token;
+      }
     });
-
-    // When clicking the "Not you?" button, refresh the token and then submit the logout form
-    logoutBtn?.addEventListener('click', () => {
-        refreshToken(logoutForm);
-        logoutForm?.submit();
-    });
-
   })();
 </script>

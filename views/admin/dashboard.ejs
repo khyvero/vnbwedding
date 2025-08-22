@@ -566,67 +566,146 @@
       applyRowFilters();
     })();
 
-    // ----- PDF Generation (Robust) -----
+    // ----- PDF Generation (Robust & Styled) -----
     (function() {
       const downloadBtn = document.getElementById('downloadPdfBtn');
       if (!downloadBtn) return;
 
-      const generatePdf = () => {
+      const generatePdf = async () => {
+        if (typeof window.jspdf === 'undefined') {
+          return alert('PDF generation library not loaded. Please refresh and try again.');
+        }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        const table = document.getElementById('dashboardTable');
-        const head = [];
-        const body = [];
+        if (typeof doc.autoTable !== 'function') {
+          return alert('PDF table library not loaded. Please refresh and try again.');
+        }
 
-        const headerCells = table.querySelectorAll('thead th');
-        headerCells.forEach(th => {
-          const isVisible = window.getComputedStyle(th).display !== 'none';
-          if (isVisible && th.textContent.trim() !== 'Actions') {
-            head.push(th.textContent.trim());
-          }
-        });
+        const originalBtnText = downloadBtn.textContent;
+        downloadBtn.textContent = 'Generating...';
+        downloadBtn.disabled = true;
 
-        const tableRows = table.querySelectorAll('tbody tr');
-        tableRows.forEach(tr => {
-          const isVisible = window.getComputedStyle(tr).display !== 'none';
-          if (isVisible) {
-            const rowData = [];
-            const dataCells = tr.querySelectorAll('td');
-            dataCells.forEach((td, index) => {
-              const headerCell = headerCells[index];
-              const isColVisible = window.getComputedStyle(headerCell).display !== 'none';
+        try {
+          const table = document.getElementById('dashboardTable');
 
-              if (isColVisible && headerCell.textContent.trim() !== 'Actions') {
-                if (headerCell.dataset.col === 'name') {
-                  rowData.push(td.querySelector('div:first-child').textContent.trim());
+          // 1. Load and convert SVG to PNG data URL
+          const getLogoPngDataUrl = () => new Promise(async (resolve, reject) => {
+            try {
+              const logoResponse = await fetch('/visual_assets/public/logo_gold_100x100.svg');
+              if (!logoResponse.ok) return reject(new Error('Logo not found'));
+              const logoSvgText = await logoResponse.text();
+
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+              };
+              img.onerror = (err) => reject(new Error('Could not load SVG as an image. ' + err));
+              img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(logoSvgText)));
+            } catch (error) {
+              reject(error);
+            }
+          });
+
+          const logoPngDataUrl = await getLogoPngDataUrl();
+
+          // 2. Prepare table data
+          const columnsToExclude = ['When', 'Actions'];
+          const head = [];
+          const body = [];
+
+          const allHeaderCells = table.querySelectorAll('thead th');
+          const includedHeaderCells = [...allHeaderCells].filter(th => {
+            const text = th.textContent.trim();
+            return window.getComputedStyle(th).display !== 'none' && !columnsToExclude.includes(text);
+          });
+          
+          head.push(includedHeaderCells.map(th => th.textContent.trim()));
+
+          const tableRows = table.querySelectorAll('tbody tr');
+          tableRows.forEach(tr => {
+            if (window.getComputedStyle(tr).display !== 'none') {
+              const rowData = [];
+              includedHeaderCells.forEach(headerCell => {
+                const colName = headerCell.dataset.col;
+                const td = colName ? tr.querySelector(`td[data-col="${colName}"]`) : null;
+                
+                if (td) {
+                  if (colName === 'name') {
+                    const mainName = td.querySelector('div:first-child')?.textContent.trim() || '';
+                    const plusOne = td.querySelector('div.text-xs')?.textContent.trim() || '';
+                    rowData.push(plusOne ? `${mainName} (${plusOne})` : mainName);
+                  } else {
+                    rowData.push(td.textContent.trim());
+                  }
                 } else {
-                  rowData.push(td.textContent.trim());
+                  rowData.push('');
                 }
-              }
-            });
-            body.push(rowData);
-          }
-        });
+              });
+              body.push(rowData);
+            }
+          });
 
-        doc.autoTable({
-          head: [head],
-          body: body,
-          didDrawPage: function (data) {
-            doc.setFontSize(20);
-            doc.setTextColor(40);
-            doc.text("Wedding Guest List", data.settings.margin.left, 22);
-          },
-          margin: { top: 30 }
-        });
+          // 3. Generate PDF
+          doc.autoTable({
+            head: head,
+            body: body,
+            didDrawPage: function (data) {
+              const pageWidth = doc.internal.pageSize.getWidth();
+              // Logo
+              const logoWidth = 20;
+              const logoHeight = 20;
+              const logoX = (pageWidth / 2) - (logoWidth / 2);
+              doc.addImage(logoPngDataUrl, 'PNG', logoX, 8, logoWidth, logoHeight);
 
-        const today = new Date();
-        const dateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-        doc.save(`guest-list-${dateStr}.pdf`);
+              // Names
+              doc.setFontSize(16);
+              doc.setTextColor(40);
+              doc.text("Veronica & Bishoy", pageWidth / 2, 38, { align: 'center' });
+
+              // Title
+              doc.setFontSize(12);
+              doc.text("Wedding Guest List", pageWidth / 2, 46, { align: 'center' });
+
+              // Date
+              doc.setFontSize(10);
+              doc.setTextColor(150);
+              doc.text("03.10.2025", pageWidth / 2, 52, { align: 'center' });
+            },
+            margin: { top: 60 },
+            styles: {
+              valign: 'middle',
+              overflow: 'linebreak'
+            },
+            headStyles: {
+              fillColor: [30, 42, 68], // #1E2A44
+              textColor: [255, 255, 255],
+              fontStyle: 'bold',
+              valign: 'middle'
+            },
+            alternateRowStyles: {
+              fillColor: [247, 238, 231] // A light version of #F7EEE7
+            },
+            theme: 'striped'
+          });
+
+          const today = new Date();
+          const dateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+          doc.save(`guest-list-${dateStr}.pdf`);
+        } catch (error) {
+          console.error("Failed to generate PDF:", error);
+          alert("Could not generate PDF. See browser console for details.");
+        } finally {
+          downloadBtn.textContent = originalBtnText;
+          downloadBtn.disabled = false;
+        }
       };
 
-      downloadBtn.addEventListener('click', () => {
-        generatePdf();
-      });
+      downloadBtn.addEventListener('click', generatePdf);
     })();
   });
 </script>

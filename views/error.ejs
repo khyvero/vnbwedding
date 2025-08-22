@@ -1,22 +1,17 @@
-<% layout('layout', { pageTitle: 'Error' }) -%>
+<% layout('layout', { pageTitle: 'Something Went Wrong' }) -%>
 
-<%- include('partials/main-header', { page: 'error', viewer, csrfToken }) %>
+<%- include('partials/main-header', { page: 'error', viewer: (typeof viewer !== 'undefined' ? viewer : null), csrfToken: (typeof csrfToken !== 'undefined' ? csrfToken : '') }) %>
 
-<div class="max-w-4xl mx-auto px-4 pt-40 pb-12 text-center">
-  <h1 class="serif text-4xl font-bold mb-4">Something went wrong</h1>
-  <p class="text-lg opacity-80 mb-8">
-    We apologize for the inconvenience. Please try again later or navigate back to the homepage.
+<div class="max-w-2xl mx-auto px-4 pt-40 pb-12 text-center">
+  <h1 class="serif text-4xl font-bold mb-4">Oops!</h1>
+  <p class="text-lg leading-relaxed mb-2">
+    It seems there was an error: <strong class="font-semibold"><%= (typeof error !== 'undefined' && error.message) ? error.message : 'An unexpected issue occurred' %></strong>.
   </p>
-  
-  <% if (typeof error !== 'undefined' && error) { %>
-    <pre class="bg-stone-100 p-4 rounded-lg text-left text-sm text-red-700/80 overflow-auto mb-8">
-      <code><%- JSON.stringify(error, null, 2) %></code>
-    </pre>
-  <% } %>
-
-  <div class="text-center mt-12">
-    <a href="/" class="inline-block bg-[#1E2A44] text-white px-6 py-3 rounded-full hover:bg-[#2a3b5a] transition-colors">
-      Back to Home
-    </a>
-  </div>
+  <p class="text-lg leading-relaxed mb-8">
+    If you are sure this is not a mistake, please report it to us on the email
+    <a href="mailto:bishoy.veronica@gmail.com" class="underline">bishoy.veronica@gmail.com</a>.
+  </p>
+  <a href="/" class="inline-block bg-[#1E2A44] text-white px-6 py-3 rounded-full hover:bg-[#2a3b5a] transition-colors">
+    Back to Home
+  </a>
 </div>

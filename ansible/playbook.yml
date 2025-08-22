@@ -91,7 +91,7 @@
 
     - name: Obtain Let's Encrypt certificate
       command: >
-        certbot --nginx -d www.veronicabishoy.wedding --non-interactive --agree-tos -m {{ vault_cert_email }}
+        certbot --nginx -d veronicabishoy.wedding www.veronicabishoy.wedding --non-interactive --agree-tos -m {{ vault_cert_email }}
       args:
         creates: /etc/letsencrypt/live/www.veronicabishoy.wedding/fullchain.pem
 

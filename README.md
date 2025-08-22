@@ -101,7 +101,30 @@ This project includes a complete Ansible playbook to deploy the application to a
 
 This section serves as a memory bank, tracking all development progress.
 
-### Changelog (Session of 2025-08-22)
+### Changelog (Session of 2025-08-25)
+
+*   **Homepage Layout & Alignment:**
+    *   **Final Alignment Correction:** Corrected the layout of the homepage sections. All section titles (e.g., "Locations", "Timeline") are now properly center-aligned, while all content within those sections is left-aligned for readability.
+    *   **Google Maps Links:** Updated the "Show location" buttons to open Google Maps with the destination pre-filled, rather than prompting for directions.
+
+### Changelog (Session of 2025-08-24)
+
+*   **PDF Generation Overhaul:**
+    *   **Logo Integration:** Added the SVG wedding logo to the header of the generated PDF. Resolved a library limitation by implementing a client-side function to convert the SVG to a PNG data URL before rendering.
+    *   **Enhanced Details:** Included the couple's names ("Veronica & Bishoy") and the wedding date ("03.10.2025") in the PDF header for a more personalized touch.
+    *   **Improved Table Layout:** Enhanced the `jspdf-autotable` configuration to better handle multiline content in cells, ensuring notes and other long-form data are displayed clearly and legibly.
+
+*   **Homepage Layout & Alignment:**
+    *   **Section Titles:** All primary section titles on the homepage (e.g., "Locations", "Timeline") are now center-aligned for a cleaner, more organized look.
+    *   **Section Content:** Ensured that the content *within* each section (including paragraphs and location details) is consistently left-aligned for readability.
+    *   **Locations Section:**
+        *   The layout was updated to a single-column, mobile-first design, with the Ceremony and Reception details appearing sequentially and left-aligned within a centered container.
+        *   Button text was changed from "Show me directions" to the more concise "Show location".
+
+*   **Footer Update:**
+    *   Changed the copyright year in the site-wide footer from 2024 to 2025.
+
+### Changelog (Session of 2025-08-23)
 
 *   **PDF Guest List:** Completely redesigned the generated PDF of the guest list to be more professional and visually appealing. The new design includes the official wedding logo, a clear title, improved margins, and a color-coded table with alternating row colors for enhanced readability. The "When" and "Actions" columns have been removed to focus on the most essential guest information.
 *   **Custom Error Pages:** Implemented a robust and user-friendly error handling system. All errors, including 404s, now display a custom-styled page that provides a helpful, context-aware message and a clear way for users to report issues.
@@ -116,7 +139,7 @@ This section serves as a memory bank, tracking all development progress.
 *   **RSVP Form UI/UX:**
     *   **Dynamic Layout:** Completely refactored the RSVP form's HTML structure and CSS classes to fix major visual bugs. The form now correctly shows and hides sections based on user selections without leaving behind empty spaces or orphaned separators, resulting in a clean and logical user experience.
 
-**Last Updated:** 2025-08-22
+**Last Updated:** 2025-08-25
 
 **✅ Completed Tasks:**
 

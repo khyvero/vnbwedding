@@ -10,6 +10,8 @@ import { fileURLToPath } from 'node:url';
 import ejsMate from 'ejs-mate';
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto'; // For dev cookie secret
+import nodemailer from 'nodemailer';
+import ejs from 'ejs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,7 +55,57 @@ app.use('/visual_assets', express.static(path.join(__dirname, 'visual_assets')))
 // ---------- CSRF ----------
 const csrfProtection = csrf({ cookie: true });
 
+// ---------- Email ----------
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: process.env.EMAIL_PORT === '465',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+async function sendWelcomeEmail({ to, guestName, accessCode, loginUrl, inviteGroup }) {
+  const templatePath = path.join(__dirname, 'views', 'emails', 'welcome.ejs');
+  const html = await ejs.renderFile(templatePath, { guestName, accessCode, loginUrl, inviteGroup });
+
+  await transporter.sendMail({
+    from: '"Veronica & Bishoy" <bishoy.veronica@gmail.com>',
+    to,
+    subject: "You're Invited!",
+    html,
+  });
+}
+
+async function sendRsvpConfirmationEmail(details) {
+  const templatePath = path.join(__dirname, 'views', 'emails', 'rsvp-confirmation.ejs');
+  const html = await ejs.renderFile(templatePath, details);
+
+  await transporter.sendMail({
+    from: '"Veronica & Bishoy" <bishoy.veronica@gmail.com>',
+    to: [details.to, 'bishoy.veronica@gmail.com'],
+    subject: 'RSVP Confirmation',
+    html,
+  });
+}
+
+async function sendCustomEmail({ to, guestName, subject, content }) {
+  const templatePath = path.join(__dirname, 'views', 'emails', 'custom-email.ejs');
+  const html = await ejs.renderFile(templatePath, { guestName, subject, content });
+
+  await transporter.sendMail({
+    from: '"Veronica & Bishoy" <bishoy.veronica@gmail.com>',
+    to,
+    subject,
+    html,
+  });
+}
+
 // ---------- Helpers ----------
+const RSVP_DEADLINE = new Date('2025-09-17T23:59:59.999Z');
+const isRsvpLocked = () => new Date() > RSVP_DEADLINE;
+
 const yn = (v) => (v === 'yes' ? true : v === 'no' ? false : null);
 
 const INVITE_GROUPS = ['bridesmaids', 'groomsmen', 'family', 'guest'];
@@ -106,7 +158,7 @@ app.get('/', csrfProtection, async (req, res, next) => {
   try {
     const viewer = await getViewer(req);
     const showAdminLink = process.env.SHOW_ADMIN_LINK !== 'false';
-    res.render('index', { page: 'home', csrfToken: req.csrfToken(), viewer, showAdminLink });
+    res.render('index', { page: 'home', csrfToken: req.csrfToken(), viewer, showAdminLink, rsvpLocked: isRsvpLocked() });
   } catch (err) { next(err); }
 });
 
@@ -281,11 +333,16 @@ app.get('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
       guests:        (r.guests || []).map(g => ({ name: g.placeCardName || '', dietary: g.dietary || '' }))
     };
 
-    res.render('rsvp', { csrfToken: req.csrfToken(), defaults, viewer, maxGuests: invite.maxGuests, error: null });
+    res.render('rsvp', { csrfToken: req.csrfToken(), defaults, viewer, maxGuests: invite.maxGuests, error: null, rsvpLocked: isRsvpLocked() });
   } catch (err) { next(err); }
 });
 
-app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
+app.post('/rsvp', requireAccess, csrfProtection, (req, res, next) => {
+  if (isRsvpLocked()) {
+    return res.status(403).send('The RSVP deadline has passed.');
+  }
+  next();
+}, async (req, res, next) => {
   try {
     const {
       placeCardName, email, dietary, ceremony, reception,
@@ -294,7 +351,6 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
 
     const validationRules = {
       'Place card name': { value: placeCardName, max: 255 },
-      'Email': { value: email, max: 255 },
       'Dietary requirements': { value: dietary, max: 1024 },
       'Notes': { value: notes, max: 1024 },
     };
@@ -327,14 +383,15 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
           defaults,
           viewer,
           maxGuests: invite.maxGuests,
-          error: `${fieldName} is too long (max ${rule.max} characters).`
+          error: `${fieldName} is too long (max ${rule.max} characters).`,
+          rsvpLocked: isRsvpLocked(),
         });
       }
     }
 
     const invite = await prisma.invite.findUnique({
       where: { id: req.access.inviteId },
-      select: { rsvpId: true, guestId: true, maxGuests: true, accessName: true }
+      select: { rsvpId: true, guestId: true, maxGuests: true, accessName: true, rsvp: { select: { email: true } } }
     });
     if (!invite) return res.status(400).send('Invite not found');
 
@@ -344,6 +401,7 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
 
     const displayName = (isAttendingReception && placeCardName?.trim()) || invite.accessName;
 
+    let finalGuests = [];
     if (invite.guestId) {
       await prisma.guest.update({
         where: { id: invite.guestId },
@@ -370,12 +428,12 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
           return res.status(400).send(`You can only add a maximum of ${invite.maxGuests} guests.`);
         }
       }
+      finalGuests = cleanedGuests;
 
       await prisma.rSVP.update({
         where: { id: targetRsvpId },
         data: {
           placeCardName: isAttendingReception ? (placeCardName?.trim() || invite.accessName) : null,
-          email:         email?.trim() || null,
           dietary:       isAttendingReception ? (dietary?.trim() || null) : null,
           ceremony:      isAttendingCeremony,
           reception:     isAttendingReception,
@@ -385,6 +443,25 @@ app.post('/rsvp', requireAccess, csrfProtection, async (req, res, next) => {
           guests:        { deleteMany: {}, create: cleanedGuests }
         }
       });
+    }
+
+    if (invite.rsvp.email) {
+      try {
+        await sendRsvpConfirmationEmail({
+          to: invite.rsvp.email,
+          name: displayName,
+          ceremony: isAttendingCeremony,
+          reception: isAttendingReception,
+          placeCardName: isAttendingReception ? (placeCardName?.trim() || invite.accessName) : null,
+          dietary: isAttendingReception ? (dietary?.trim() || null) : null,
+          transport: (isAttendingCeremony && isAttendingReception) ? yn(transport) : null,
+          printedInvite: isAttendingAnything ? yn(printedInvite) : null,
+          notes: isAttendingAnything ? (notes?.trim() || null) : null,
+          guests: finalGuests,
+        });
+      } catch (emailError) {
+        console.error('RSVP confirmation email failed to send:', emailError);
+      }
     }
 
     const viewer = await getViewer(req);
@@ -450,7 +527,7 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
     const primaries = await prisma.rSVP.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        invite: { select: { id: true, accessName: true, group: true, maxGuests: true } },
+        invite: { select: { id: true, accessName: true, group: true, maxGuests: true, rsvp: { select: { email: true } } } },
         guests: { include: { invite: { select: { id: true, accessName: true } } } } 
       },
     });
@@ -462,6 +539,7 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
         kind: 'RSVP',
         id: r.id,
         name: r.invite?.accessName || '',
+        email: r.invite?.rsvp?.email || null,
         placeCardName: r.placeCardName || null,
         ceremony: r.ceremony,
         reception: r.reception,
@@ -480,6 +558,7 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
           kind: 'GUEST',
           id: g.id,
           name: g.invite?.accessName || '',
+          email: r.invite?.rsvp?.email || null,
           placeCardName: g.placeCardName || null,
           ceremony: r.ceremony,
           reception: r.reception,
@@ -571,9 +650,12 @@ app.get('/admin/invites', requireAdmin, csrfProtection, async (req, res, next) =
 // ---------- Admin: create PRIMARY invite (code unique; name can duplicate) ----------
 app.post('/admin/invites/create-primary', requireAdmin, csrfProtection, async (req, res, next) => {
   try {
-    const { guestName, accessCode, inviteGroup, maxGuests } = req.body;
+    const { guestName, email, accessCode, inviteGroup, maxGuests } = req.body;
     const accessName = guestName?.trim();
     const codePlain  = accessCode?.trim();
+    const guestEmail = email?.trim();
+    const normalizedGroup = normalizeInviteGroup(inviteGroup);
+
     if (!accessName) return res.status(400).send('Guest name required');
     if (!codePlain)  return res.status(400).send('Access code required');
 
@@ -588,17 +670,36 @@ app.post('/admin/invites/create-primary', requireAdmin, csrfProtection, async (r
     }
 
     // Create RSVP with no placeCardName (guest fills later)
-    const rsvp = await prisma.rSVP.create({ data: {} });
+    const rsvp = await prisma.rSVP.create({ data: { email: guestEmail } });
 
     await prisma.invite.create({
       data: {
         rsvpId: rsvp.id,
         accessName,
         accessCodeHash: await bcrypt.hash(codePlain, 10),
-        group: normalizeInviteGroup(inviteGroup),
+        group: normalizedGroup,
         maxGuests: maxGuests ? parseInt(maxGuests, 10) : null,
       }
     });
+
+    if (guestEmail) {
+      try {
+        await sendWelcomeEmail({
+          to: guestEmail,
+          guestName: accessName,
+          accessCode: codePlain,
+          loginUrl: `${req.protocol}://${req.get('host')}`,
+          inviteGroup: normalizedGroup,
+        });
+      } catch (emailError) {
+        console.error('Email failed to send:', emailError);
+        // Non-fatal: respond with a warning that the guest was created but the email failed.
+        return res.status(200).json({ 
+          success: true, 
+          warning: 'Guest created, but the welcome email could not be sent. Please check your email settings.' 
+        });
+      }
+    }
 
     res.json({ success: true });
   } catch (e) { next(e); }
@@ -625,6 +726,49 @@ app.post('/admin/invites/:id/update', requireAdmin, csrfProtection, async (req, 
     });
 
     res.json({ success: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// ---------- Admin: send email ----------
+app.post('/admin/send-email', requireAdmin, csrfProtection, async (req, res, next) => {
+  try {
+    const { recipientGroup, subject, message, recipientEmail, recipientName } = req.body;
+    if (!subject || !message) {
+      return res.status(400).json({ error: 'Subject and message are required.' });
+    }
+
+    let recipients = [];
+    if (recipientEmail && recipientName) {
+        recipients.push({ rsvp: { email: recipientEmail }, accessName: recipientName });
+    } else {
+        const whereClause = recipientGroup === 'all' ? {} : { group: recipientGroup };
+        recipients = await prisma.invite.findMany({
+            where: whereClause,
+            select: {
+                accessName: true,
+                rsvp: { select: { email: true } },
+            },
+        });
+    }
+
+    const validRecipients = recipients.filter(inv => inv.rsvp && inv.rsvp.email);
+
+    if (validRecipients.length === 0) {
+      return res.status(404).json({ error: 'No recipients found with a valid email address.' });
+    }
+
+    for (const recipient of validRecipients) {
+      await sendCustomEmail({
+        to: recipient.rsvp.email,
+        guestName: recipient.accessName,
+        subject,
+        content: message,
+      });
+    }
+
+    res.json({ message: `Email sent to ${validRecipients.length} guest(s).` });
   } catch (e) {
     next(e);
   }
@@ -697,7 +841,7 @@ app.use(async (err, req, res, next) => {
     try { csrfToken = req.csrfToken(); } catch (e) { /* ignore */ }
   }
 
-  res.render('error', {
+  res.render('error', { 
     viewer,
     csrfToken,
     error: {

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're Invited!</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      color: #333333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .header {
+      background-color: #1E2A44;
+      color: #ffffff;
+      text-align: center;
+      padding: 20px;
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 28px;
+    }
+    .content {
+      padding: 30px;
+    }
+    .content p {
+        margin: 0 0 1em 0;
+        line-height: 1.6;
+    }
+    .content strong {
+        font-size: 1.2em;
+        color: #1E2A44;
+    }
+    .disclaimer {
+        font-size: 0.8em;
+        color: #888888;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #eeeeee;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>You're Invited!</h1>
+    </div>
+    <div class="content">
+      <p>Dear <%= guestName %>,</p>
+      <p>We are delighted to invite you to our wedding celebration!</p>
+      <p>You can access all the details and RSVP on our website. Your personal access code is:</p>
+      <p><strong><%= accessCode %></strong></p>
+      <p>Please visit our website and use this code to log in:</p>
+      <p><a href="<%= loginUrl %>"><%= loginUrl %></a></p>
+      <p>Just a friendly reminder that the last day to submit or edit your RSVP is <strong>September 17th, 2025</strong>.</p>
+      
+      <% if (inviteGroup === 'bridesmaids' || inviteGroup === 'groomsmen') { %>
+        <p>As a member of the <%= inviteGroup %>, you have access to a special page with more details. Please be sure to check the "<%= inviteGroup.charAt(0).toUpperCase() + inviteGroup.slice(1) %>" page on the website regularly for updates.</p>
+      <% } %>
+
+      <p>Feel free to reply to this email if you have any questions.</p>
+      <p>We also recommend checking the website regularly for any new updates or details as we get closer to the big day.</p>
+      <p>We can't wait to celebrate with you!</p>
+      <p>Warmly,<br>Veronica & Bishoy</p>
+      <p class="disclaimer">
+        If you have received this email in error, please disregard it and delete it immediately.
+      </p>
+    </div>
+  </div>
+  <div class="footer">
+    <p>&copy; 2025 Veronica & Bishoy. All Rights Reserved.</p>
+  </div>
+</body>
+</html>

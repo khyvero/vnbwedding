@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSVP Confirmation</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      color: #333333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .header {
+      background-color: #1E2A44;
+      color: #ffffff;
+      text-align: center;
+      padding: 20px;
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 28px;
+    }
+    .content {
+      padding: 30px;
+    }
+    .content p {
+        margin: 0 0 1em 0;
+        line-height: 1.6;
+    }
+    .summary {
+        border-left: 4px solid #6595BF;
+        padding-left: 15px;
+        margin-top: 20px;
+        font-size: 0.9em;
+    }
+    .summary p {
+        margin: 0 0 0.5em 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>RSVP Confirmation</h1>
+    </div>
+    <div class="content">
+      <p>Dear <%= name %>,</p>
+      <p>Thank you for your RSVP! We have recorded your response and are so excited to celebrate with you.</p>
+      
+      <div class="summary">
+        <p><strong>Your Response Summary:</strong></p>
+        <p>Attending Ceremony: <strong><%= ceremony ? 'Yes' : 'No' %></strong></p>
+        <p>Attending Reception: <strong><%= reception ? 'Yes' : 'No' %></strong></p>
+        
+        <% if (reception) { %>
+          <p>Place Card Name: <strong><%= placeCardName || 'Not provided' %></strong></p>
+          <p>Dietary Requirements: <strong><%= dietary || 'None' %></strong></p>
+        <% } %>
+
+        <% if (ceremony && reception) { %>
+          <p>Transport Required: <strong><%= transport ? 'Yes' : 'No' %></strong></p>
+        <% } %>
+
+        <% if (guests && guests.length > 0) { %>
+          <p><strong>Additional Guests:</strong></p>
+          <ul>
+            <% guests.forEach(guest => { %>
+              <li><%= guest.placeCardName %> <% if (guest.dietary) { %>(<%= guest.dietary %>)<% } %></li>
+            <% }); %>
+          </ul>
+        <% } %>
+
+        <p>Printed Invitation: <strong><%= printedInvite ? 'Yes' : 'No' %></strong></p>
+        <p>Notes: <strong><%= notes || 'None' %></strong></p>
+      </div>
+
+      <p>If you need to make any changes, please visit the RSVP page on our website before the deadline on <strong>September 17th, 2025</strong>. You can also reply to this email with any questions.</p>
+      <p>Warmly,<br>Veronica & Bishoy</p>
+    </div>
+  </div>
+  <div class="footer">
+    <p>&copy; 2025 Veronica & Bishoy. All Rights Reserved.</p>
+  </div>
+</body>
+</html>

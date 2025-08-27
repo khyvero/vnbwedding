@@ -3,7 +3,14 @@
 <%- include('partials/main-header', { page: 'rsvp', viewer, csrfToken }) %>
 
 <div class="max-w-2xl mx-auto px-4 pt-40 pb-12">
-  <h2 class="serif text-3xl mb-6 text-center text-[#1E2A44]">RSVP</h2>
+  <h2 class="text-3xl mb-6 text-center text-[#1E2A44] font-mellira">RSVP</h2>
+
+  <% if (rsvpLocked) { %>
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+      <p class="font-bold">The RSVP deadline has passed</p>
+      <p>The deadline to submit or edit your RSVP was September 17th, 2025. If you have any questions, please contact us directly.</p>
+    </div>
+  <% } %>
 
   <% if (viewer?.name) { %>
     <div class="flex items-center justify-between rounded-lg bg-[#FFFFFF] px-4 py-3 text-[#1E2A44] mb-6">
@@ -22,121 +29,123 @@
   <form id="rsvpForm" method="post" action="/rsvp" class="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-[#F7EEE7]">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-    <!-- Ceremony -->
-    <div>
-      <label class="block font-medium mb-2">Will you join us for the Ceremony?</label>
-      <label class="inline-flex items-center mr-6">
-        <input type="radio" name="ceremony" value="yes" <%= defaults.ceremony==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
-        <span class="ml-2">Yes</span>
-      </label>
-      <label class="inline-flex items-center">
-        <input type="radio" name="ceremony" value="no"  <%= defaults.ceremony==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
-        <span class="ml-2">No</span>
-      </label>
-    </div>
+    <fieldset <%= rsvpLocked ? 'disabled' : '' %>>
+      <!-- Ceremony -->
+      <div>
+        <label class="block font-medium mb-2">Will you join us for the Ceremony?</label>
+        <label class="inline-flex items-center mr-6">
+          <input type="radio" name="ceremony" value="yes" <%= defaults.ceremony==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
+          <span class="ml-2">Yes</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="radio" name="ceremony" value="no"  <%= defaults.ceremony==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
+          <span class="ml-2">No</span>
+        </label>
+      </div>
 
-    <!-- Reception -->
-    <div>
-      <label class="block font-medium mb-2">Will you join us for the Reception?</label>
-      <label class="inline-flex items-center mr-6">
-        <input type="radio" name="reception" value="yes" <%= defaults.reception==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
-        <span class="ml-2">Yes</span>
-      </label>
-      <label class="inline-flex items-center">
-        <input type="radio" name="reception" value="no"  <%= defaults.reception==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
-        <span class="ml-2">No</span>
-      </label>
-    </div>
+      <!-- Reception -->
+      <div>
+        <label class="block font-medium mb-2">Will you join us for the Reception?</label>
+        <label class="inline-flex items-center mr-6">
+          <input type="radio" name="reception" value="yes" <%= defaults.reception==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
+          <span class="ml-2">Yes</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="radio" name="reception" value="no"  <%= defaults.reception==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#B9D6E6]" />
+          <span class="ml-2">No</span>
+        </label>
+      </div>
 
-    <!-- All subsequent questions are grouped here -->
-    <div id="attendingExtras" class="hidden pt-4 border-t border-stone-200 divide-y divide-stone-200">
+      <!-- All subsequent questions are grouped here -->
+      <div id="attendingExtras" class="hidden pt-4 border-t border-stone-200 divide-y divide-stone-200">
 
-      <!-- Reception-specific questions -->
-      <div id="receptionQuestions" class="hidden pt-6 space-y-6">
-        <div>
-          <label for="placeCardName" class="block font-medium mb-2">What name would you like on your place card?</label>
-          <input id="placeCardName" name="placeCardName"
-                 value="<%= defaults.placeCardName || '' %>"
-                 class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]" />
-        </div>
-
-        <div>
-          <label for="dietary" class="block font-medium mb-2">Do you have any allergies or dietary requirements?</label>
-          <textarea id="dietary" name="dietary" rows="2"
-                    class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]"><%= defaults.dietary || '' %></textarea>
-          <p class="text-xs text-[#1E2A44] opacity-80 mt-2">
-            We will share personalised dish options with you closer to the day.
-          </p>
-        </div>
-
-        <!-- Additional Guests -->
-        <% if (maxGuests > 0) { %>
-        <div id="guestsSection" class="space-y-4">
-          <p class="font-medium">Additional Guests</p>
-          <div id="guests" class="space-y-4">
-            <% for(let i = 0; i < maxGuests; i++) { %>
-              <div class="space-y-2 p-4 border border-stone-200 rounded-lg">
-                <p class="font-medium text-sm">Extra Guest <%= i + 1 %></p>
-                <input name="guestNames[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].placeCardName : '' %>" placeholder="Guest name" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
-                <input name="guestDietaries[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].dietary : '' %>" placeholder="Allergies/dietary" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
-              </div>
-            <% } %>
+        <!-- Reception-specific questions -->
+        <div id="receptionQuestions" class="hidden pt-6 space-y-6">
+          <div>
+            <label for="placeCardName" class="block font-medium mb-2">What name would you like on your place card?</label>
+            <input id="placeCardName" name="placeCardName"
+                   value="<%= defaults.placeCardName || '' %>"
+                   class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]" />
           </div>
-        </div>
-        <% } %>
-      </div>
 
-      <!-- Transport -->
-      <div id="transportSection" class="hidden pt-6 space-y-4">
-        <p class="font-medium">Do you require transport between the ceremony and reception venues?</p>
-        <div class="flex items-center gap-6 mt-2">
-          <label class="inline-flex items-center gap-2">
-            <input type="radio" name="transport" value="yes" <%= defaults.transport==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]">
-            <span class="ml-2">Yes</span>
-          </label>
-          <label class="inline-flex items-center gap-2">
-            <input type="radio" name="transport" value="no"  <%= defaults.transport==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]">
-            <span class="ml-2">No</span>
-          </label>
-        </div>
-      </div>
+          <div>
+            <label for="dietary" class="block font-medium mb-2">Do you have any allergies or dietary requirements?</label>
+            <textarea id="dietary" name="dietary" rows="2"
+                      class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]"><%= defaults.dietary || '' %></textarea>
+            <p class="text-xs text-[#1E2A44] opacity-80 mt-2">
+              We will share personalised dish options with you closer to the day.
+            </p>
+          </div>
 
-      <!-- General questions (shown for either ceremony or reception) -->
-      <div id="generalQuestions" class="pt-6 space-y-6">
-        <!-- Printed Invitation -->
-        <div>
-          <p class="font-medium">Would you like to receive a printed invitation card?</p>
+          <!-- Additional Guests -->
+          <% if (maxGuests > 0) { %>
+          <div id="guestsSection" class="space-y-4">
+            <p class="font-medium">Additional Guests</p>
+            <div id="guests" class="space-y-4">
+              <% for(let i = 0; i < maxGuests; i++) { %>
+                <div class="space-y-2 p-4 border border-stone-200 rounded-lg">
+                  <p class="font-medium text-sm">Extra Guest <%= i + 1 %></p>
+                  <input name="guestNames[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].placeCardName : '' %>" placeholder="Guest name" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
+                  <input name="guestDietaries[]" value="<%= (defaults.guests && defaults.guests[i]) ? defaults.guests[i].dietary : '' %>" placeholder="Allergies/dietary" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]">
+                </div>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Transport -->
+        <div id="transportSection" class="hidden pt-6 space-y-4">
+          <p class="font-medium">Do you require transport between the ceremony and reception venues?</p>
           <div class="flex items-center gap-6 mt-2">
             <label class="inline-flex items-center gap-2">
-              <input type="radio" name="printedInvite" value="yes" <%= defaults.printedInvite==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> Yes
+              <input type="radio" name="transport" value="yes" <%= defaults.transport==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]">
+              <span class="ml-2">Yes</span>
             </label>
             <label class="inline-flex items-center gap-2">
-              <input type="radio" name="printedInvite" value="no"  <%= defaults.printedInvite==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> No
+              <input type="radio" name="transport" value="no"  <%= defaults.transport==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]">
+              <span class="ml-2">No</span>
             </label>
           </div>
-          <p class="text-xs text-[#1E2A44] opacity-80 mt-2">
-              If yes, please send your full name and postal address via WhatsApp or Email.
-          </p>
         </div>
 
-        <!-- Notes -->
-        <div>
-          <p class="font-medium">Special Assistance or Additional Notes:</p>
-          <textarea name="notes" rows="3" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]"><%= defaults.notes || '' %></textarea>
-        </div>
+        <!-- General questions (shown for either ceremony or reception) -->
+        <div id="generalQuestions" class="pt-6 space-y-6">
+          <!-- Printed Invitation -->
+          <div>
+            <p class="font-medium">Would you like to receive a printed invitation card?</p>
+            <div class="flex items-center gap-6 mt-2">
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" name="printedInvite" value="yes" <%= defaults.printedInvite==='yes'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> Yes
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" name="printedInvite" value="no"  <%= defaults.printedInvite==='no'?'checked':'' %> class="text-[#1E2A44] focus:ring-[#1E2A44]"> No
+              </label>
+            </div>
+            <p class="text-xs text-[#1E2A44] opacity-80 mt-2">
+                If yes, please send your full name and postal address via WhatsApp or Email.
+            </p>
+          </div>
 
-        <!-- Email -->
-        <div>
-          <p class="font-medium">Email (for updates, optional):</p>
-          <input type="email" name="email" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]" value="<%= defaults.email || '' %>">
+          <!-- Notes -->
+          <div>
+            <p class="font-medium">Special Assistance or Additional Notes:</p>
+            <textarea name="notes" rows="3" class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44]"><%= defaults.notes || '' %></textarea>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <p class="font-medium">Email (for updates):</p>
+            <input type="email" name="email" disabled class="w-full rounded-lg border border-[#F7EEE7] px-3 py-2 bg-stone-100 text-stone-500" value="<%= defaults.email || '' %>">
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="flex items-center gap-4 pt-6 border-t border-stone-200">
-      <button type="submit" class="inline-flex items-center rounded-full bg-[#1E2A44] text-white px-4 py-2 shadow hover:bg-[#6595BF]">Submit</button>
-      <a href="/" class="inline-flex items-center rounded-full bg-[#F7EEE7] text-[#1E2A44] px-4 py-2 shadow hover:bg-white/30">Cancel</a>
-    </div>
+      <div class="flex items-center gap-4 pt-6 border-t border-stone-200">
+        <button type="submit" class="inline-flex items-center rounded-full bg-[#1E2A44] text-white px-4 py-2 shadow hover:bg-[#6595BF]" <%= rsvpLocked ? 'disabled' : '' %>>Submit</button>
+        <a href="/" class="inline-flex items-center rounded-full bg-[#F7EEE7] text-[#1E2A44] px-4 py-2 shadow hover:bg-white/30">Cancel</a>
+      </div>
+    </fieldset>
   </form>
 </div>
 

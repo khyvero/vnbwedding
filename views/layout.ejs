@@ -16,6 +16,13 @@
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+    @font-face {
+      font-family: 'Mellira';
+      src: url('/visual_assets/fonts/Mellira.otf') format('opentype'),
+           url('/visual_assets/fonts/Mellira.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
     html {
       scroll-behavior: smooth;
       scroll-padding-top: 8rem; /* Offset for the sticky header (h-32) */
@@ -25,6 +32,9 @@
       font-family: 'EB Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+    }
+    .font-mellira {
+      font-family: 'Mellira', sans-serif;
     }
   </style>
 
@@ -54,7 +64,7 @@
         <!-- Left Column -->
         <div class="flex flex-col items-center text-center w-full md:w-1/3">
           <img src="/visual_assets/public/logo_gold_100x100.svg" alt="Veronica & Bishoy Logo" class="h-24 w-24 mb-4">
-          <p class="text-xl font-semibold text-stone-100 mb-2">Veronica & Bishoy</p>
+          <img src="/visual_assets/public/title_names_white.svg" alt="Veronica & Bishoy" class="w-48 mx-auto mb-2">
           <p class="text-sm mb-2">03.10.2025 | BERLIN</p>
           <a href="mailto:bishoy.veronica@gmail.com" class="text-sm hover:underline mb-1">bishoy.veronica@gmail.com</a>
           <div class="flex items-center gap-2 mt-1">

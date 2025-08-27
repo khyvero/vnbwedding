@@ -28,7 +28,7 @@
       
       <!-- Left: Desktop Nav -->
       <div class="hidden md:flex justify-self-start">
-        <nav class="flex items-center space-x-6 text-sm">
+        <nav class="flex items-center space-x-6 text-sm font-mellira">
           <a href="<%= locationsLink %>" class="hover:opacity-80">Locations</a>
           <a href="<%= timelineLink %>" class="hover:opacity-80">Timeline</a>
           <a href="<%= storyLink %>" class="hover:opacity-80">Story</a>
@@ -39,14 +39,14 @@
       <!-- Center: Logo -->
       <div class="justify-self-center col-start-2">
         <a href="/" aria-label="Home — Veronica & Bishoy">
-          <img src="<%= logoSrc %>" alt="Veronica & Bishoy — wedding logo" class="h-20 md:h-28 w-auto select-none" draggable="false" />
+          <img src="<%= logoSrc %>" alt="Veronica & Bishoy — wedding logo" class="h-16 md:h-24 w-auto select-none" draggable="false" />
         </a>
       </div>
 
       <!-- Right: Desktop Actions & Mobile Menu Button -->
       <div class="justify-self-end">
         <!-- Desktop -->
-        <div class="hidden md:flex items-center gap-6 text-sm">
+        <div class="hidden md:flex items-center gap-6 text-sm font-mellira">
           <% if (viewer) { %>
             <a href="<%= galleryLink %>" class="hover:opacity-80">Gallery</a>
             <% if (viewer.group === 'bridesmaids') { %>
@@ -82,7 +82,7 @@
   </div>
 
   <!-- Mobile Menu -->
-  <div id="mobile-menu" class="md:hidden hidden bg-[#1E2A44]/95 backdrop-blur-md">
+  <div id="mobile-menu" class="md:hidden hidden bg-[#1E2A44]/95 backdrop-blur-md font-mellira">
     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       <a href="<%= locationsLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Locations</a>
       <a href="<%= timelineLink %>" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-white/20">Timeline</a>

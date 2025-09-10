@@ -26,10 +26,14 @@
 </div>
 
 <!-- Summary cards -->
-<div class="grid gap-4 mb-4 md:grid-cols-3">
+<div class="grid gap-4 mb-4 md:grid-cols-4">
+  <div class="p-4 bg-white rounded-xl shadow-sm">
+    <div class="text-2xl font-semibold"><%= counts.totalAttendees %></div>
+    <div class="text-stone-500">Total Attendees (Ceremony)</div>
+  </div>
   <div class="p-4 bg-white rounded-xl shadow-sm">
     <div class="text-2xl font-semibold"><%= counts.total %></div>
-    <div class="text-stone-500">Total Primary RSVPs</div>
+    <div class="text-stone-500">Primary RSVPs</div>
   </div>
   <div class="p-4 bg-white rounded-xl shadow-sm">
     <div class="text-2xl font-semibold"><%= counts.ceremonyYes %></div>
@@ -161,6 +165,7 @@
   <table class="w-full text-sm bg-white rounded-xl shadow-sm overflow-hidden" id="dashboardTable">
     <thead class="bg-stone-100">
       <tr>
+        <th class="p-3"><input type="checkbox" id="selectAllChk"></th>
         <th class="text-left p-3" data-col="name">Name</th>
         <th class="text-left p-3" data-col="place">Place Card Name</th>
         <th class="text-left p-3" data-col="ceremony">Ceremony</th>
@@ -188,6 +193,7 @@
             data-kind="<%= row.kind %>"
             data-guest-id="<%= row.id %>">
 
+          <td class="p-3"><input type="checkbox" class="guest-chk"></td>
           <td class="p-3" data-col="name">
             <div class="<%= row.kind === 'GUEST' ? 'font-medium' : '' %>"><%= row.name || '' %></div>
             <% if (row.kind === 'GUEST' && row.addedBy) { %>
@@ -225,10 +231,93 @@
   </table>
 </div>
 
+<!-- Register RSVP Modal -->
+<div id="registerRsvpModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+  <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
+    <h3 class="serif text-xl mb-4">Register Full RSVP</h3>
+    <form method="post" action="/admin/rsvps/create-full" class="space-y-4" id="registerRsvpForm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <!-- Primary Guest -->
+      <div class="border-b pb-4">
+        <p class="font-semibold text-lg">Primary Guest</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div>
+            <p class="font-medium">Full Name</p>
+            <input name="primaryName" required class="w-full rounded-lg border px-3 py-2" placeholder="e.g., Alice Smith">
+          </div>
+          <div>
+            <p class="font-medium">Email (optional)</p>
+            <input name="primaryEmail" type="email" class="w-full rounded-lg border px-3 py-2" placeholder="e.g., alice@example.com">
+          </div>
+        </div>
+      </div>
+
+      <!-- RSVP Details -->
+      <div class="border-b pb-4">
+        <p class="font-semibold text-lg">RSVP Details</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div>
+            <p class="font-medium">Attending Ceremony?</p>
+            <select name="ceremony" class="w-full rounded-lg border px-3 py-2">
+              <option value="yes" selected>Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+          <div>
+            <p class="font-medium">Attending Reception?</p>
+            <select name="reception" class="w-full rounded-lg border px-3 py-2">
+              <option value="yes" selected>Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-4">
+            <p class="font-medium">Place Card Name (for Reception)</p>
+            <input name="placeCardName" class="w-full rounded-lg border px-3 py-2" placeholder="Leave blank to use Full Name">
+        </div>
+        <div class="mt-4">
+            <p class="font-medium">Dietary Requirements</p>
+            <textarea name="dietary" rows="2" class="w-full rounded-lg border px-3 py-2"></textarea>
+        </div>
+        <div class="mt-4">
+            <p class="font-medium">Transport Needed?</p>
+            <select name="transport" class="w-full rounded-lg border px-3 py-2">
+              <option value="no" selected>No</option>
+              <option value="yes">Yes</option>
+            </select>
+        </div>
+         <div class="mt-4">
+            <p class="font-medium">Notes</p>
+            <textarea name="notes" rows="2" class="w-full rounded-lg border px-3 py-2"></textarea>
+        </div>
+      </div>
+
+      <!-- Plus Ones -->
+      <div>
+        <div class="flex justify-between items-center">
+          <p class="font-semibold text-lg">+1 Guests</p>
+          <button type="button" id="addPlusOneBtn" class="text-sm px-3 py-1 rounded-lg border hover:bg-stone-100">+ Add</button>
+        </div>
+        <div id="plusOneContainer" class="space-y-3 mt-2">
+          <!-- Dynamic +1 fields will be inserted here -->
+        </div>
+      </div>
+
+      <p id="registerRsvpErr" class="text-sm text-red-600 hidden"></p>
+
+      <div class="flex justify-end gap-2 pt-4 border-t">
+        <button type="button" id="closeRegisterRsvpBtn" class="px-4 py-2 border rounded-lg">Cancel</button>
+        <button type="submit" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">Submit RSVP</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Add Guest Modal -->
 <div id="addModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
   <div class="max-w-sm w-full bg-white rounded-2xl shadow-xl p-6">
-    <h3 class="serif text-xl mb-4">Add Guest</h3>
+    <h3 class="serif text-xl mb-4">Add Guest Invite</h3>
     <form method="post" action="/admin/invites/create-primary" class="space-y-4" id="addGuestForm">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div>
@@ -345,7 +434,10 @@
 
 <div class="mt-4 flex gap-2">
   <button id="openAdd" class="rounded-lg px-4 py-2 bg-[#1E2A44] text-white hover:bg-[#2a3b5a] text-sm">
-    Add Guest
+    Add Guest Invite
+  </button>
+  <button id="openRsvp" class="rounded-lg px-4 py-2 bg-green-600 text-white hover:bg-green-700 text-sm">
+    Register RSVP
   </button>
   <button id="openEmail" class="rounded-lg px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 text-sm">
     Send Email to Group
@@ -356,25 +448,126 @@
 <script src="/visual_assets/libs/jspdf-autotable.min.js" defer></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', function() {
+    // All dashboard scripts are now wrapped in a DOMContentLoaded listener.
+
+    // ----- Checkbox logic -----
+    const selectAllChk = document.getElementById('selectAllChk');
+    const guestChks = document.querySelectorAll('.guest-chk');
+    if (selectAllChk) {
+      selectAllChk.addEventListener('change', (e) => {
+        guestChks.forEach(chk => {
+          chk.checked = e.target.checked;
+        });
+      });
+    }
+
+    // ----- Register RSVP modal -----
+    (function(){
+      const modal = document.getElementById('registerRsvpModal');
+      const form  = document.getElementById('registerRsvpForm');
+      const errEl = document.getElementById('registerRsvpErr');
+      const plusOneContainer = document.getElementById('plusOneContainer');
+      const openBtn = document.getElementById('openRsvp');
+      const closeBtn = document.getElementById('closeRegisterRsvpBtn');
+      const addPlusOneBtn = document.getElementById('addPlusOneBtn');
+
+      if (!modal || !form || !errEl || !plusOneContainer || !openBtn || !closeBtn || !addPlusOneBtn) {
+        console.error("One or more elements for the Register RSVP modal are missing from the DOM.");
+        return;
+      }
+
+      const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
+      const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+      openBtn.addEventListener('click', () => {
+        form.reset();
+        plusOneContainer.innerHTML = '';
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+        showModal();
+      });
+      closeBtn.addEventListener('click', hideModal);
+
+      addPlusOneBtn.addEventListener('click', () => {
+        const plusOneCount = plusOneContainer.children.length;
+        const newPlusOne = document.createElement('div');
+        newPlusOne.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-3';
+        newPlusOne.innerHTML = `
+          <div>
+            <p class="font-medium">Guest ${plusOneCount + 1} Name</p>
+            <input name="guestNames" required class="w-full rounded-lg border px-3 py-2" placeholder="e.g., Bob Builder">
+          </div>
+          <div>
+            <p class="font-medium">Guest ${plusOneCount + 1} Dietary</p>
+            <input name="guestDietaries" class="w-full rounded-lg border px-3 py-2" placeholder="e.g., Vegetarian">
+          </div>
+        `;
+        plusOneContainer.appendChild(newPlusOne);
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+
+        const fd   = new FormData(form);
+        const body = new URLSearchParams(fd);
+
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body,
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'csrf-token': fd.get('_csrf') || ''
+            }
+          });
+
+          const result = await res.json();
+
+          if (!res.ok) {
+            errEl.textContent = result.error || 'An unknown error occurred.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          if (result.redirectUrl) {
+            window.location.href = result.redirectUrl;
+          } else {
+            window.location.reload();
+          }
+
+        } catch (err) {
+          errEl.textContent = 'Unexpected error: ' + err.message;
+          errEl.classList.remove('hidden');
+        }
+      });
+    })();
+
     // ----- Add Guest modal -----
     (function(){
       const modal = document.getElementById('addModal');
       const form  = document.getElementById('addGuestForm');
       const errEl = document.getElementById('addGuestErr');
 
+      if (!modal || !form || !errEl) return;
+
       const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
       const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
 
       document.getElementById('openAdd')?.addEventListener('click', () => {
-        errEl?.classList.add('hidden'); errEl.textContent = '';
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
         showModal();
       });
       document.getElementById('closeAdd')?.addEventListener('click', hideModal);
 
-      form?.addEventListener('submit', async (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        errEl?.classList.add('hidden'); errEl.textContent = '';
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
 
         const fd   = new FormData(form);
         const body = new URLSearchParams(fd);
@@ -401,7 +594,6 @@
           if (result.warning) {
             errEl.textContent = result.warning;
             errEl.classList.remove('hidden');
-            // Don't close modal, let user see the warning.
           } else {
             window.location.reload();
           }
@@ -419,6 +611,8 @@
       const form  = document.getElementById('editGuestForm');
       const errEl = document.getElementById('editGuestErr');
 
+      if (!modal || !form || !errEl) return;
+
       const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
       const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
 
@@ -435,7 +629,7 @@
           form.querySelector('[name="inviteGroup"]').value = group;
           form.querySelector('[name="maxGuests"]').value = maxGuests;
 
-          errEl?.classList.add('hidden');
+          errEl.classList.add('hidden');
           errEl.textContent = '';
           showModal();
         });
@@ -443,9 +637,10 @@
 
       document.getElementById('closeEdit')?.addEventListener('click', hideModal);
 
-      form?.addEventListener('submit', async (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        errEl?.classList.add('hidden'); errEl.textContent = '';
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
 
         const fd   = new FormData(form);
         const body = new URLSearchParams(fd);
@@ -487,12 +682,16 @@
       const recipientEmailInput = document.getElementById('recipientEmail');
       const recipientNameInput = document.getElementById('recipientNameInput');
 
+      if (!modal || !form || !errEl || !successEl || !recipientGroup || !recipientNameDisplay || !recipientEmailInput || !recipientNameInput) return;
+
       const showModal = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); };
       const hideModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
 
       document.getElementById('openEmail')?.addEventListener('click', () => {
-        errEl?.classList.add('hidden'); errEl.textContent = '';
-        successEl?.classList.add('hidden'); successEl.textContent = '';
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+        successEl.classList.add('hidden');
+        successEl.textContent = '';
         form.reset();
         recipientGroup.style.display = 'block';
         recipientNameDisplay.style.display = 'none';
@@ -512,8 +711,10 @@
             return;
           }
 
-          errEl?.classList.add('hidden'); errEl.textContent = '';
-          successEl?.classList.add('hidden'); successEl.textContent = '';
+          errEl.classList.add('hidden');
+          errEl.textContent = '';
+          successEl.classList.add('hidden');
+          successEl.textContent = '';
           form.reset();
           recipientGroup.style.display = 'none';
           recipientNameDisplay.style.display = 'block';
@@ -526,10 +727,12 @@
 
       document.getElementById('closeEmail')?.addEventListener('click', hideModal);
 
-      form?.addEventListener('submit', async (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        errEl?.classList.add('hidden'); errEl.textContent = '';
-        successEl?.classList.add('hidden'); successEl.textContent = '';
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+        successEl.classList.add('hidden');
+        successEl.textContent = '';
 
         const fd   = new FormData(form);
         const body = new URLSearchParams(fd);
@@ -570,6 +773,11 @@
       if (!table) return;
 
       const activeFiltersContainer = document.getElementById('activeFilters');
+      const rowMenu = document.getElementById('rowMenu');
+      const colMenu = document.getElementById('colMenu');
+      const hlDupes = document.getElementById('hlDupes');
+
+      if (!activeFiltersContainer || !rowMenu || !colMenu || !hlDupes) return;
 
       // --- Menu Dropdown Logic ---
       const setupMenu = (btnId, menuId) => {
@@ -593,6 +801,8 @@
       });
 
       // --- Update Active Filters Display ---
+      const dupeCheckboxes = rowMenu.querySelectorAll('[data-dupe]');
+      const colCheckboxes = colMenu.querySelectorAll('[data-colchk]');
       const updateActiveFiltersDisplay = () => {
         const filters = [];
         const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
@@ -623,8 +833,6 @@
       };
 
       // --- Column Filtering ---
-      const colMenu = document.getElementById('colMenu');
-      const colCheckboxes = colMenu.querySelectorAll('[data-colchk]');
       const updateColumns = () => {
         colCheckboxes.forEach(chk => {
           const colName = chk.dataset.colchk;
@@ -645,10 +853,7 @@
       });
 
       // --- Row Filtering ---
-      const rowMenu = document.getElementById('rowMenu');
       const tableRows = table.querySelectorAll('tbody tr');
-      const dupeCheckboxes = rowMenu.querySelectorAll('[data-dupe]');
-
       const applyRowFilters = () => {
         const ceremonyFilter = rowMenu.querySelector('[name="ceremony"]:checked').value;
         const receptionFilter = rowMenu.querySelector('[name="reception"]:checked').value;
@@ -699,7 +904,6 @@
       });
       
       // --- Highlighting ---
-      const hlDupes = document.getElementById('hlDupes');
       hlDupes.addEventListener('change', () => {
         table.classList.toggle('highlight-dupes', hlDupes.checked);
         updateActiveFiltersDisplay();
@@ -734,6 +938,24 @@
 
         try {
           const table = document.getElementById('dashboardTable');
+          const selectedRows = [...table.querySelectorAll('tbody tr')].filter(tr => {
+            const chk = tr.querySelector('.guest-chk');
+            return chk && chk.checked && tr.style.display !== 'none';
+          });
+
+          if (selectedRows.length === 0) {
+            alert('Please select at least one guest to export.');
+            return;
+          }
+
+          // Calculate summary
+          let ceremonyCount = 0;
+          let receptionCount = 0;
+          selectedRows.forEach(row => {
+              if (row.dataset.cer === 'yes') ceremonyCount++;
+              if (row.dataset.rec === 'yes') receptionCount++;
+          });
+          const totalSelected = selectedRows.length;
 
           // 1. Load and convert SVG to PNG data URL
           const getLogoPngDataUrl = () => new Promise(async (resolve, reject) => {
@@ -768,33 +990,34 @@
           const allHeaderCells = table.querySelectorAll('thead th');
           const includedHeaderCells = [...allHeaderCells].filter(th => {
             const text = th.textContent.trim();
-            return window.getComputedStyle(th).display !== 'none' && !columnsToExclude.includes(text);
+            const colName = th.dataset.col;
+            const isVisible = window.getComputedStyle(th).display !== 'none';
+            const isNotExcluded = !columnsToExclude.includes(text);
+            // Also exclude the checkbox column from the PDF header
+            return isVisible && isNotExcluded && colName;
           });
           
           head.push(includedHeaderCells.map(th => th.textContent.trim()));
 
-          const tableRows = table.querySelectorAll('tbody tr');
-          tableRows.forEach(tr => {
-            if (window.getComputedStyle(tr).display !== 'none') {
-              const rowData = [];
-              includedHeaderCells.forEach(headerCell => {
-                const colName = headerCell.dataset.col;
-                const td = colName ? tr.querySelector(`td[data-col="${colName}"]`) : null;
-                
-                if (td) {
-                  if (colName === 'name') {
-                    const mainName = td.querySelector('div:first-child')?.textContent.trim() || '';
-                    const plusOne = td.querySelector('div.text-xs')?.textContent.trim() || '';
-                    rowData.push(plusOne ? `${mainName} (${plusOne})` : mainName);
-                  } else {
-                    rowData.push(td.textContent.trim());
-                  }
+          selectedRows.forEach(tr => {
+            const rowData = [];
+            includedHeaderCells.forEach(headerCell => {
+              const colName = headerCell.dataset.col;
+              const td = colName ? tr.querySelector(`td[data-col="${colName}"]`) : null;
+              
+              if (td) {
+                if (colName === 'name') {
+                  const mainName = td.querySelector('div:first-child')?.textContent.trim() || '';
+                  const plusOne = td.querySelector('div.text-xs')?.textContent.trim() || '';
+                  rowData.push(plusOne ? `${mainName} (${plusOne})` : mainName);
                 } else {
-                  rowData.push('');
+                  rowData.push(td.textContent.trim());
                 }
-              });
-              body.push(rowData);
-            }
+              } else {
+                rowData.push('');
+              }
+            });
+            body.push(rowData);
           });
 
           // 3. Generate PDF
@@ -803,6 +1026,8 @@
             body: body,
             didDrawPage: function (data) {
               const pageWidth = doc.internal.pageSize.getWidth();
+              const margin = data.settings.margin.left;
+
               // Logo
               const logoWidth = 20;
               const logoHeight = 20;
@@ -818,12 +1043,45 @@
               doc.setFontSize(12);
               doc.text("Wedding Guest List", pageWidth / 2, 46, { align: 'center' });
 
-              // Date
+              // Banners
+              const bannerHeight = 20;
+              const bannerY = 55;
+              const bannerWidth = (pageWidth - (margin * 2) - 10) / 3;
+              const bannerSpacing = 5;
+
+              // Banner 1: Total
+              doc.setFillColor(229, 231, 235); // gray-200
+              doc.rect(margin, bannerY, bannerWidth, bannerHeight, 'F');
+              doc.setFontSize(22);
+              doc.setTextColor(30, 42, 68);
+              doc.text(String(totalSelected), margin + bannerWidth / 2, bannerY + 12, { align: 'center' });
               doc.setFontSize(10);
-              doc.setTextColor(150);
-              doc.text("03.10.2025", pageWidth / 2, 52, { align: 'center' });
+              doc.setTextColor(107, 114, 128);
+              doc.text('Total Guests', margin + bannerWidth / 2, bannerY + 18, { align: 'center' });
+
+              // Banner 2: Ceremony
+              const banner2X = margin + bannerWidth + bannerSpacing;
+              doc.setFillColor(209, 250, 229); // green-100
+              doc.rect(banner2X, bannerY, bannerWidth, bannerHeight, 'F');
+              doc.setFontSize(22);
+              doc.setTextColor(30, 42, 68);
+              doc.text(String(ceremonyCount), banner2X + bannerWidth / 2, bannerY + 12, { align: 'center' });
+              doc.setFontSize(10);
+              doc.setTextColor(107, 114, 128);
+              doc.text('Attending Ceremony', banner2X + bannerWidth / 2, bannerY + 18, { align: 'center' });
+
+              // Banner 3: Reception
+              const banner3X = banner2X + bannerWidth + bannerSpacing;
+              doc.setFillColor(219, 234, 254); // blue-100
+              doc.rect(banner3X, bannerY, bannerWidth, bannerHeight, 'F');
+              doc.setFontSize(22);
+              doc.setTextColor(30, 42, 68);
+              doc.text(String(receptionCount), banner3X + bannerWidth / 2, bannerY + 12, { align: 'center' });
+              doc.setFontSize(10);
+              doc.setTextColor(107, 114, 128);
+              doc.text('Attending Reception', banner3X + bannerWidth / 2, bannerY + 18, { align: 'center' });
             },
-            margin: { top: 60 },
+            margin: { top: 85 },
             styles: {
               valign: 'middle',
               overflow: 'linebreak'

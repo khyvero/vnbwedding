@@ -20,6 +20,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 // ---------- Security & parsing ----------
+app.set('trust proxy', 1);
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -51,6 +52,7 @@ app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use('/visual_assets', express.static(path.join(__dirname, 'visual_assets')));
+app.use('/public', express.static(path.join(__dirname, 'visual_assets', 'public')));
 
 // ---------- CSRF ----------
 const csrfProtection = csrf({ cookie: true });
@@ -73,7 +75,7 @@ async function sendWelcomeEmail({ to, guestName, accessCode, loginUrl, inviteGro
   await transporter.sendMail({
     from: '"Veronica & Bishoy" <bishoy.veronica@gmail.com>',
     to,
-    subject: "You're Invited!",
+    subject: "You're invited to Veronica & Bishoy's wedding!",
     html,
   });
 }
@@ -102,8 +104,21 @@ async function sendCustomEmail({ to, guestName, subject, content }) {
   });
 }
 
+async function sendContactFormEmail({ fromName, fromEmail, message }) {
+  const templatePath = path.join(__dirname, 'views', 'emails', 'contact-form.ejs');
+  const html = await ejs.renderFile(templatePath, { fromName, fromEmail, message });
+
+  await transporter.sendMail({
+    from: '"Veronica & Bishoy" <bishoy.veronica@gmail.com>',
+    to: 'bishoy.veronica@gmail.com',
+    replyTo: fromEmail,
+    subject: `New Message from ${fromName}`,
+    html,
+  });
+}
+
 // ---------- Helpers ----------
-const RSVP_DEADLINE = new Date('2025-09-17T23:59:59.999Z');
+const RSVP_DEADLINE = new Date('2025-09-10T23:59:59.999Z');
 const isRsvpLocked = () => new Date() > RSVP_DEADLINE;
 
 const yn = (v) => (v === 'yes' ? true : v === 'no' ? false : null);
@@ -160,6 +175,34 @@ app.get('/', csrfProtection, async (req, res, next) => {
     const showAdminLink = process.env.SHOW_ADMIN_LINK !== 'false';
     res.render('index', { page: 'home', csrfToken: req.csrfToken(), viewer, showAdminLink, rsvpLocked: isRsvpLocked() });
   } catch (err) { next(err); }
+});
+
+app.post('/contact', requireAccess, csrfProtection, async (req, res, next) => {
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
+
+    const invite = await prisma.invite.findUnique({
+      where: { id: req.access.inviteId },
+      select: { accessName: true, rsvp: { select: { email: true } } },
+    });
+
+    if (!invite || !invite.rsvp.email) {
+      return res.status(400).json({ error: 'Could not find your email address.' });
+    }
+
+    await sendContactFormEmail({
+      fromName: invite.accessName,
+      fromEmail: invite.rsvp.email,
+      message,
+    });
+
+    res.json({ success: true, message: 'Your message has been sent!' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.get('/travel', csrfProtection, async (req, res, next) => {
@@ -235,9 +278,7 @@ app.get('/access', csrfProtection, async (req, res, next) => {
   try {
     const viewer = await getViewer(req);
     res.render('access', { next: req.query.next || '/', error: null, csrfToken: req.csrfToken(), viewer });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 });
 
 app.use((req, res, next) => {
@@ -620,13 +661,17 @@ app.get('/admin', requireAdmin, csrfProtection, async (req, res, next) => {
       row._dupes = flags;
     }
 
-    // Simple counts (if needed elsewhere) could be computed here—but homepage no longer shows stats.
+    // Simple counts
+    const ceremonyYesCount = (await prisma.rSVP.count({ where: { ceremony: true } }))
+                           + (await prisma.guest.count({ where: { rsvp: { ceremony: true } } }));
+    const receptionYesCount = (await prisma.rSVP.count({ where: { reception: true } }))
+                            + (await prisma.guest.count({ where: { rsvp: { reception: true } } }));
+
     const counts = {
-      total:        await prisma.rSVP.count(),
-      ceremonyYes:  (await prisma.rSVP.count({ where: { ceremony: true } }))
-                    + (await prisma.guest.count({ where: { rsvp: { ceremony: true } } })),
-      receptionYes: (await prisma.rSVP.count({ where: { reception: true } }))
-                    + (await prisma.guest.count({ where: { rsvp: { reception: true } } })),
+      total: await prisma.rSVP.count(),
+      ceremonyYes: ceremonyYesCount,
+      receptionYes: receptionYesCount,
+      totalAttendees: ceremonyYesCount, // Total people attending ceremony
     };
 
     res.render('admin/dashboard', { rows, counts, csrfToken: req.csrfToken(), isAdmin: true });
@@ -703,6 +748,74 @@ app.post('/admin/invites/create-primary', requireAdmin, csrfProtection, async (r
 
     res.json({ success: true });
   } catch (e) { next(e); }
+});
+
+app.post('/admin/rsvps/create-full', requireAdmin, csrfProtection, async (req, res, next) => {
+  try {
+    const {
+      primaryName, primaryEmail, ceremony, reception, placeCardName,
+      dietary, transport, notes, guestNames, guestDietaries
+    } = req.body;
+
+    const originalPrimaryName = primaryName?.trim();
+    if (!originalPrimaryName) {
+      return res.status(400).json({ error: 'Primary guest name is required.' });
+    }
+
+    let uniqueAccessName = originalPrimaryName;
+    const existingInvite = await prisma.invite.findUnique({ where: { accessName: uniqueAccessName } });
+    if (existingInvite) {
+      uniqueAccessName = `${uniqueAccessName} #${crypto.randomBytes(2).toString('hex')}`;
+    }
+
+    const isAttendingCeremony = yn(ceremony);
+    const isAttendingReception = yn(reception);
+
+    const guests = [];
+    if (isAttendingReception) {
+        const names = Array.isArray(guestNames) ? guestNames : (guestNames ? [guestNames] : []);
+        const dietaries = Array.isArray(guestDietaries) ? guestDietaries : (guestDietaries ? [guestDietaries] : []);
+        for (let i = 0; i < names.length; i++) {
+            const name = (names[i] || '').trim();
+            if (name) {
+                guests.push({ 
+                    placeCardName: name, 
+                    dietary: (dietaries[i] || '').trim() || null 
+                });
+            }
+        }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const newRsvp = await tx.rSVP.create({
+        data: {
+          email: primaryEmail?.trim() || null,
+          ceremony: isAttendingCeremony,
+          reception: isAttendingReception,
+          placeCardName: isAttendingReception ? (placeCardName?.trim() || originalPrimaryName) : null,
+          dietary: isAttendingReception ? (dietary?.trim() || null) : null,
+          transport: (isAttendingCeremony && isAttendingReception) ? yn(transport) : null,
+          notes: notes?.trim() || null,
+          guests: { create: guests },
+        },
+      });
+
+      await tx.invite.create({
+        data: {
+          rsvpId: newRsvp.id,
+          accessName: uniqueAccessName,
+          maxGuests: guests.length,
+        },
+      });
+    });
+
+    res.json({ success: true, redirectUrl: '/admin' });
+  } catch (err) {
+    console.error("Error creating full RSVP:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'An internal error occurred while saving the RSVP.' });
+    }
+  }
 });
 
 app.post('/admin/invites/:id/update', requireAdmin, csrfProtection, async (req, res, next) => {

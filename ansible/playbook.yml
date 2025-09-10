@@ -89,11 +89,11 @@
         state: absent
       notify: Restart Nginx
 
-    - name: Obtain Let's Encrypt certificate
+    - name: Obtain or Renew Let's Encrypt certificate
       command: >
-        certbot --nginx -d veronicabishoy.wedding www.veronicabishoy.wedding --non-interactive --agree-tos -m {{ vault_cert_email }}
-      args:
-        creates: /etc/letsencrypt/live/www.veronicabishoy.wedding/fullchain.pem
+        certbot --nginx --expand -d veronicabishoy.wedding -d www.veronicabishoy.wedding --non-interactive --agree-tos -m {{ vault_cert_email }}
+      # By removing the 'creates' argument, we ensure Certbot runs on every playbook execution.
+      # It will validate the Nginx config and apply SSL settings if they were overwritten by the template.
 
     - name: Ensure Certbot auto-renewal timer is running
       systemd:

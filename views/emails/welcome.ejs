@@ -6,7 +6,7 @@
   <title>You're Invited!</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
       background-color: #f4f4f4;
       margin: 0;
       padding: 0;
@@ -18,6 +18,7 @@
       background-color: #ffffff;
       border-radius: 8px;
       overflow: hidden;
+      border: 1px solid #ddd;
     }
     .header {
       background-color: #1E2A44;
@@ -27,18 +28,66 @@
     }
     .header h1 {
         margin: 0;
-        font-size: 28px;
+        font-size: 42px;
+        font-family: 'Mellira', 'Times New Roman', Times, serif;
+        font-weight: normal;
     }
     .content {
       padding: 30px;
+      text-align: center;
     }
     .content p {
         margin: 0 0 1em 0;
         line-height: 1.6;
     }
-    .content strong {
+    .invitation-body {
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        color: #333;
+    }
+    .invitation-body .names {
+        font-size: 1.6em;
+        margin: 25px 0;
+        line-height: 1.4;
+        font-family: 'Times New Roman', Times, serif;
+        font-style: italic;
+        color: #1E2A44;
+    }
+    .invitation-body .names .and {
+        font-size: 0.7em;
+        font-style: normal;
+        color: #555;
+    }
+    .invitation-body .location {
+        font-size: 1.1em;
+        font-weight: bold;
+    }
+    .invitation-body .address {
+        font-size: 0.95em;
+        color: #555;
+    }
+    .separator {
+        border: 0;
+        border-top: 1px solid #eeeeee;
+        margin: 30px 0;
+    }
+    .rsvp-details {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eeeeee;
+    }
+    .rsvp-details strong {
         font-size: 1.2em;
         color: #1E2A44;
+    }
+    .rsvp-link {
+        display: inline-block;
+        background-color: #1E2A44;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-weight: bold;
     }
     .disclaimer {
         font-size: 0.8em;
@@ -46,6 +95,7 @@
         margin-top: 20px;
         padding-top: 15px;
         border-top: 1px solid #eeeeee;
+        text-align: left;
     }
     .footer {
       text-align: center;
@@ -58,27 +108,49 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>You're Invited!</h1>
+      <h1>Veronica & Bishoy</h1>
     </div>
     <div class="content">
-      <p>Dear <%= guestName %>,</p>
-      <p>We are delighted to invite you to our wedding celebration!</p>
-      <p>You can access all the details and RSVP on our website. Your personal access code is:</p>
-      <p><strong><%= accessCode %></strong></p>
-      <p>Please visit our website and use this code to log in:</p>
-      <p><a href="<%= loginUrl %>"><%= loginUrl %></a></p>
-      <p>Just a friendly reminder that the last day to submit or edit your RSVP is <strong>September 17th, 2025</strong>.</p>
+      <p style="text-align: left;">Dear <%= guestName %>,</p>
+      
+      <div class="invitation-body">
+        <p>The honour of your presence<br>is requested at the marriage of</p>
+        <p class="names">
+          Veronica Kwok<br>
+          <span class="and">and</span><br>
+          Bishoy Awad
+        </p>
+        <p>
+          on<br><strong>Friday, the 3rd of October, 2025</strong><br>at twelve o’clock in the afternoon
+        </p>
+        <p style="margin-top: 20px;">
+          at<br>
+          <span class="location">Schloss Schönhausen – Festsaal</span><br>
+          <span class="address">Tschaikowskistraße 1, 13156 Berlin</span>
+        </p>
+        
+        <hr class="separator" style="width: 40%; margin: 25px auto;">
+
+        <p>
+          A reception will follow at<br>
+          <span class="location">Ermelerhaus</span><br>
+          <span class="address">Märkisches Ufer 10, 10179 Berlin</span>
+        </p>
+        <p style="margin-top: 20px;">An evening of fine dining and celebration awaits.</p>
+      </div>
+
+      <div class="rsvp-details">
+        <p>Kindly reply by <strong>10.09.2025</strong> via our wedding website.</p>
+        <p>Your personal access code is: <strong><%= accessCode %></strong></p>
+        <p><a href="<%= loginUrl %>" class="rsvp-link">Click here to RSVP</a></p>
+      </div>
       
       <% if (inviteGroup === 'bridesmaids' || inviteGroup === 'groomsmen') { %>
-        <p>As a member of the <%= inviteGroup %>, you have access to a special page with more details. Please be sure to check the "<%= inviteGroup.charAt(0).toUpperCase() + inviteGroup.slice(1) %>" page on the website regularly for updates.</p>
+        <p style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eeeeee;">As a member of the <%= inviteGroup %>, you have access to a special page with more details. Please be sure to check the "<%= inviteGroup.charAt(0).toUpperCase() + inviteGroup.slice(1) %>" page on the website regularly for updates.</p>
       <% } %>
 
-      <p>Feel free to reply to this email if you have any questions.</p>
-      <p>We also recommend checking the website regularly for any new updates or details as we get closer to the big day.</p>
-      <p>We can't wait to celebrate with you!</p>
-      <p>Warmly,<br>Veronica & Bishoy</p>
       <p class="disclaimer">
-        If you have received this email in error, please disregard it and delete it immediately.
+        If you have any questions, please don't hesitate to reach out by replying to this email. We look forward to celebrating with you!<br><br>Warmly,<br>Veronica & Bishoy
       </p>
     </div>
   </div>

@@ -36,6 +36,44 @@
     .font-mellira {
       font-family: 'Mellira', sans-serif;
     }
+    .accordion-item {
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 1rem 0;
+      text-align: left;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .accordion-content p,
+    .accordion-content ul,
+    .accordion-content ol {
+        padding-bottom: 1rem;
+    }
+    .accordion-content ul,
+    .accordion-content ol {
+        padding-left: 1.5rem;
+        list-style-type: disc;
+    }
+    .accordion-content ol {
+        list-style-type: decimal;
+    }
+    .accordion-icon {
+      font-size: 1.5em;
+      transition: transform 0.3s ease;
+    }
+    .accordion-header.active .accordion-icon {
+      transform: rotate(45deg);
+    }
   </style>
 
   <%- block('head') %>
@@ -83,7 +121,7 @@
           <ul class="space-y-2">
             <li><a href="/rsvp" class="hover:underline">RSVP</a></li>
             <li><a href="<%= locationsLink %>" class="hover:underline">Locations</a></li>
-            <li><a href="<%= timelineLink %>" class="hover:underline">Timeline</a></li>
+            <li><a href="<%= timelineLink %>" class="hover:underline">Programme</a></li>
             <li><a href="<%= faqsLink %>" class="hover:underline">FAQs</a></li>
           </ul>
         </div>
@@ -186,6 +224,31 @@
               window.location.href = targetUrl;
             } else {
               window.showAccessModal(targetUrl);
+            }
+          });
+        });
+
+        // --- Accordion Logic ---
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        accordionItems.forEach(item => {
+          const header = item.querySelector('.accordion-header');
+          const content = item.querySelector('.accordion-content');
+          const icon = item.querySelector('.accordion-icon');
+
+          header.addEventListener('click', () => {
+            const isActive = header.classList.contains('active');
+            // Close all other items to ensure only one is open at a time
+            accordionItems.forEach(otherItem => {
+              otherItem.querySelector('.accordion-header').classList.remove('active');
+              otherItem.querySelector('.accordion-content').style.maxHeight = null;
+              otherItem.querySelector('.accordion-icon').textContent = '+';
+            });
+
+            // Open the clicked item if it wasn't already active
+            if (!isActive) {
+              header.classList.add('active');
+              content.style.maxHeight = content.scrollHeight + 'px';
+              icon.textContent = '−';
             }
           });
         });

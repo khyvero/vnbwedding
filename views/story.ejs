@@ -1,22 +1,26 @@
-<% layout('layout', { pageTitle: 'Our Story' }) -%>
+<% layout('layout', { pageTitle: 'Our Story', page: 'story', viewer, csrfToken }) -%>
 
-<%- include('partials/main-header', { page: 'story', viewer, csrfToken }) %>
+<style>
+  #story-svg {
+    transition: opacity 2s ease-in-out;
+  }
+  .svg-loading {
+    opacity: 0;
+  }
+</style>
 
 <div class="max-w-4xl mx-auto px-4 pt-40 pb-12">
   <h1 class="text-4xl font-bold text-center mb-8 font-mellira">Our Story</h1>
-
-  <div class="space-y-8 text-lg leading-relaxed">
-    <p>
-      Our story is just beginning, and we're so excited to write the next chapter with you.
-    </p>
-    <p>
-      [More content to be added here soon!]
-    </p>
-  </div>
-
-  <div class="text-center mt-12">
-    <a href="/" class="inline-block bg-[#1E2A44] text-white px-6 py-3 rounded-full hover:bg-[#2a3b5a] transition-colors">
-      Back to Home
-    </a>
-  </div>
+  <img id="story-svg" src="/public/story.svg" alt="Our Story" class="w-full h-auto rounded-lg shadow-md mb-8 svg-loading">
 </div>
+
+<script>
+  const storySvg = document.getElementById('story-svg');
+  if (storySvg.complete) {
+    storySvg.classList.remove('svg-loading');
+  } else {
+    storySvg.addEventListener('load', () => {
+      storySvg.classList.remove('svg-loading');
+    });
+  }
+</script>

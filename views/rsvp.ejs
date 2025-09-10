@@ -1,6 +1,4 @@
-<% layout('layout', { pageTitle: 'RSVP - Veronica & Bishoy\'s Wedding' }) -%>
-
-<%- include('partials/main-header', { page: 'rsvp', viewer, csrfToken }) %>
+<% layout('layout', { pageTitle: 'RSVP - Veronica & Bishoy\'s Wedding', page: 'rsvp', viewer, csrfToken, rsvpLocked }) -%>
 
 <div class="max-w-2xl mx-auto px-4 pt-40 pb-12">
   <h2 class="text-3xl mb-6 text-center text-[#1E2A44] font-mellira">RSVP</h2>
@@ -8,7 +6,7 @@
   <% if (rsvpLocked) { %>
     <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
       <p class="font-bold">The RSVP deadline has passed</p>
-      <p>The deadline to submit or edit your RSVP was September 17th, 2025. If you have any questions, please contact us directly.</p>
+      <p>The deadline to submit or edit your RSVP was September 10th, 2025. If you have any questions, please contact us directly.</p>
     </div>
   <% } %>
 
